@@ -10,7 +10,7 @@
 #                                                                              #
 # **************************************************************************** #
 
-NAME = webserv
+NAME = ircserv
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -I./includes -std=c++98
 SRC =	src/main.cpp \
