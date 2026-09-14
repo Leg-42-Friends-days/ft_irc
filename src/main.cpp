@@ -17,6 +17,12 @@ bool checkPort(std::string port)
     return (false);
 }
 
+void	init_signals(void)
+{
+	signal(SIGQUIT, SIG_IGN);
+	signal(SIGINT, SIG_IGN);
+}
+
 int main(int ac, char **av)
 {
     if (ac != 3)
@@ -24,6 +30,9 @@ int main(int ac, char **av)
       std::cout << "execute : ./ircserv <port> <password>" << std::endl;
       return EXIT_FAILURE;
     }
+
+    // CTRL Z pour quitter
+    init_signals();
 
     std::string port = av[1];
     std::string password = av[2];
@@ -46,7 +55,7 @@ int main(int ac, char **av)
     sockaddr_in hint;
     hint.sin_family = AF_INET;
     // htons == host to networks short;
-    hint.sin_port = htons(54000);
+    hint.sin_port = htons(std::atoi(port.c_str()));
     // internet command?? -- adress ip du pc == localhost;
     inet_pton(AF_INET, "127.0.0.1", &hint.sin_addr);
 
@@ -107,8 +116,8 @@ int main(int ac, char **av)
         std::cout << "The client disconnected" << std::endl;
         break;
       }
-      
-      std::cout << "Received: " << std::string(buff, 0, bytesRecv) << std::endl;
+
+      std::cout << "Received: " << std::string(buff, 0, bytesRecv);
 
       send(clientSocket, buff, bytesRecv + 1, 0);
     }

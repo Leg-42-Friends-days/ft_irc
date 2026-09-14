@@ -9,6 +9,7 @@
 #include <string.h>
 #include <string>
 #include <poll.h>
+#include <signal.h>
 
 #include <netinet/in.h>
 #include <cstdlib>
