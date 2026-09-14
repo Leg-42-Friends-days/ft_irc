@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <string>
+#include <poll.h>
 
 #include <netinet/in.h>
 #include <cstdlib>
