@@ -69,57 +69,138 @@ int main(int ac, char **av)
       return -3;
     }
 
-    sockaddr_in client;
-    socklen_t clientSize = sizeof(client);
-    char host[NI_MAXHOST];
-    char svc[NI_MAXSERV];
+    fd_set master;
+    fd_set copy;
 
-    int clientSocket = accept(sockfd, (sockaddr*) &client, &clientSize);
+    FD_ZERO(&master);
+    FD_SET(sockfd, &master);
 
-    if (clientSocket == -1)
-    {
-      std::cerr << "Problem with client connecting!" << std::endl;
-      return -4;
-    }
+    int max_fd = sockfd;
 
-    close(sockfd);
-
-    memset(host, 0, NI_MAXHOST);
-    memset(svc, 0, NI_MAXSERV);
-
-    int nameInfo = getnameinfo((sockaddr *) &client, sizeof(client), host, NI_MAXHOST, svc, NI_MAXSERV, 0);
-    if (nameInfo)
-    {
-      std::cout << host << " connected on " << svc << std::endl;
-    }
-    else
-    {
-      inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
-      std::cout << host << " connected on " << ntohs(client.sin_port) << std::endl;
-    }
-
-    char buff[4096];
     while (true)
     {
-      memset(buff, 0, 4096);
-      int bytesRecv = recv(clientSocket, buff, 4096, 0);
-      if (bytesRecv == -1)
+      copy = master;
+      int result = select(max_fd + 1, &copy, NULL, NULL, NULL);
+      if (result == -1)
       {
-        std::cerr << "There was a connection issue" << std::endl;
+        std::cerr << "Error : Select didn't work";
         break;
       }
-
-      if (bytesRecv == 0)
+      
+      for (int fd = 0; fd <= max_fd; ++fd)
       {
-        std::cout << "The client disconnected" << std::endl;
-        break;
+        if (!FD_ISSET(fd, &copy))
+          continue;
+        if (fd == sockfd)
+        {
+          sockaddr_in client_addr;
+          socklen_t client_size = sizeof(client_addr);
+
+          int client = accept(sockfd, (sockaddr *) &client_addr, &client_size);
+
+          if (client == -1)
+          {
+            std::cerr << "Error : accept fonction didn't work";
+            continue;
+          }
+
+          std::cout << "New client : " << client << " (" << inet_ntoa(client_addr.sin_addr) << ")" << std::endl;
+
+          FD_SET(client, &master);
+
+          if (client > max_fd)
+            max_fd = client;
+          const char* msg = "Welcome to the IRC server !\n";
+
+          send(client, msg, std::strlen(msg), 0);
+        }
+        else
+        {
+          char buffer[4096];
+
+          int bytes = recv(fd, buffer, 4096, 0);
+
+          if (bytes <= 0)
+          {
+            std::cout << "Client " << fd << " Disconnected" << std::endl;
+            close(fd);
+            FD_CLR(fd, &master);
+          }
+          else
+          {
+            buffer[bytes] = '\0';
+
+            std::cout << "Client " << fd << " : " << buffer;
+
+            int other_fd;
+
+            for (other_fd = 0; other_fd <= max_fd; ++other_fd)
+            {
+              if (other_fd == sockfd)
+                continue;
+              if (other_fd == fd)
+                continue;
+              if (!FD_ISSET(other_fd, &master))
+                continue;
+              send(other_fd, buffer, bytes, 0);
+            }
+          }
+        }
       }
-
-      std::cout << "Received: " << std::string(buff, 0, bytesRecv);
-
-      send(clientSocket, buff, bytesRecv + 1, 0);
     }
 
-    close(clientSocket);
+    // SINGLE SERVEUR TEST
+    // sockaddr_in client;
+    // socklen_t clientSize = sizeof(client);
+    // char host[NI_MAXHOST];
+    // char svc[NI_MAXSERV];
+
+    // int clientSocket = accept(sockfd, (sockaddr*) &client, &clientSize);
+
+    // if (clientSocket == -1)
+    // {
+    //   std::cerr << "Problem with client connecting!" << std::endl;
+    //   return -4;
+    // }
+
+    // close(sockfd);
+
+    // memset(host, 0, NI_MAXHOST);
+    // memset(svc, 0, NI_MAXSERV);
+
+    // int nameInfo = getnameinfo((sockaddr *) &client, sizeof(client), host, NI_MAXHOST, svc, NI_MAXSERV, 0);
+    // if (nameInfo)
+    // {
+    //   std::cout << host << " connected on " << svc << std::endl;
+    // }
+    // else
+    // {
+    //   inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
+    //   std::cout << host << " connected on " << ntohs(client.sin_port) << std::endl;
+    // }
+
+    // char buff[4096];
+    // while (true)
+    // {
+    //   memset(buff, 0, 4096);
+    //   int bytesRecv = recv(clientSocket, buff, 4096, 0);
+    //   if (bytesRecv == -1)
+    //   {
+    //     std::cerr << "There was a connection issue" << std::endl;
+    //     break;
+    //   }
+
+    //   if (bytesRecv == 0)
+    //   {
+    //     std::cout << "The client disconnected" << std::endl;
+    //     break;
+    //   }
+
+    //   std::cout << "Received: " << std::string(buff, 0, bytesRecv);
+
+    //   send(clientSocket, buff, bytesRecv + 1, 0);
+    // }
+
+    // close(clientSocket);
     return EXIT_SUCCESS;
 }
