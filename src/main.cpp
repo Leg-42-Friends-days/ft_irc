@@ -92,7 +92,7 @@ int main(int ac, char **av)
     int nameInfo = getnameinfo((sockaddr *) &client, sizeof(client), host, NI_MAXHOST, svc, NI_MAXSERV, 0);
     if (nameInfo)
     {
-      std::cout << host << " connected on " << "HERE" << std::endl;
+      std::cout << host << " connected on " << svc << std::endl;
     }
     else
     {
