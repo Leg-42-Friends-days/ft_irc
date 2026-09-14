@@ -8,7 +8,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <string>
-#include <poll.h>
+#include <sys/select.h>
 #include <signal.h>
 
 #include <netinet/in.h>
