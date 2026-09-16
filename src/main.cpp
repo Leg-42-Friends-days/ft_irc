@@ -46,50 +46,30 @@ int main(int ac, char **av)
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
+		return(1);
 	}
 	
-	Server serv(ac, av);
+	Server serv(av);
 	init_signals();
 	// CTRL Z pour quitter
 
-
-
-
-		// socket
-		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-		if (sockfd == -1)
-		{
-			std::cerr << "Error : can't create a socket" << std::endl;
-			return EXIT_FAILURE;
-		}
-		
-		// bind
-		sockaddr_in hint;
-		hint.sin_family = AF_INET;
-		// htons == host to networks short;
-		hint.sin_port = htons(std::atoi(serv.getPortIP().c_str()));
-		// internet command?? -- adress ip du pc == localhost;
-		inet_pton(AF_INET, "127.0.0.1", &hint.sin_addr);
-
-		if (bind(sockfd, (sockaddr *) &hint, sizeof(hint)) == -1)
-		{
-			std::cerr << "Can't bind to IP/port";
-			return -2;
-		}
-
-		if (listen(sockfd, SOMAXCONN) == -1)
-		{
-			std::cerr << "Can't listen!" << std::endl;
-			return -3;
-		}
+	try
+	{
+		serv.initServ();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+		return(1);
+	}
 
 		fd_set master;
 		fd_set copy;
 
 		FD_ZERO(&master);
-		FD_SET(sockfd, &master);
+		FD_SET(serv.getServFd(), &master);
 
-		int max_fd = sockfd;
+		int max_fd = serv.getServFd();
 
 		while (true)
 		{
@@ -105,12 +85,12 @@ int main(int ac, char **av)
 			{
 				if (!FD_ISSET(fd, &copy))
 					continue;
-				if (fd == sockfd)
+				if (fd == serv.getServFd())
 				{
 					sockaddr_in client_addr;
 					socklen_t client_size = sizeof(client_addr);
 
-					int client = accept(sockfd, (sockaddr *) &client_addr, &client_size);
+					int client = accept(serv.getServFd(), (sockaddr *) &client_addr, &client_size);
 
 					if (client == -1)
 					{
@@ -150,7 +130,7 @@ int main(int ac, char **av)
 
 						for (other_fd = 0; other_fd <= max_fd; ++other_fd)
 						{
-							if (other_fd == sockfd)
+							if (other_fd == serv.getServFd())
 								continue;
 							if (other_fd == fd)
 								continue;
