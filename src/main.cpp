@@ -99,9 +99,7 @@ int main(int ac, char **av)
 				{
 					//recevoir
 					char buffer[4096];
-				
 					int message = recv(pollFds[i].fd, buffer, 4096, 0);
-				
 					if (message <= 0)
 					{
 						std::cout << "Client " << pollFds[i].fd << " Disconnected" << std::endl;
@@ -113,14 +111,13 @@ int main(int ac, char **av)
 				
 						std::cout << "Client " << pollFds[i].fd << " : " << buffer;
 				
-						/* size_t	j = 0;
+						size_t	j = 0;
 						while (j < pollFds.size())
 						{
-							if (pollFds[j].fd == serv.getServFd())
-								continue;
-							send(pollFds[j].fd, buffer, message, 0);
+							if (pollFds[j].fd != serv.getServFd() && pollFds[j].fd != pollFds[i].fd)
+								send(pollFds[j].fd, buffer, message, 0);
 							j++;
-						} */
+						}
 					}
 				}
 			}
