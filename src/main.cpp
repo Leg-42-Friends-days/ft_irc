@@ -85,23 +85,15 @@ int main(int ac, char **av)
 			{
 				if (pollFds[i].fd == serv.getServFd())
 				{
-					//nouvelle co
-					sockaddr_in client_addr;
-					socklen_t client_size = sizeof(client_addr);					
-					int clientFd = accept(serv.getServFd(), (sockaddr *) &client_addr, &client_size);
-					if (clientFd == -1)
+					try
 					{
-						std::cerr << "Error : accept fonction didn't work";
-						continue;
+						serv.addClient(pollFds);
 					}
-					struct pollfd	clientPoll;
-					clientPoll.fd = clientFd;
-					clientPoll.events = POLLIN;
-					clientPoll.revents = 0;
-					pollFds.push_back(clientPoll);
-					std::cout << "New client : " << clientFd << " (" << inet_ntoa(client_addr.sin_addr) << ")" << std::endl;
-					const char* msg = "Welcome to the IRC server !\n";
-					send(clientFd, msg, std::strlen(msg), 0);
+					catch(const std::exception& e)
+					{
+						std::cerr << e.what() << '\n';
+						continue ;
+					}
 				}
 				else
 				{
@@ -121,14 +113,14 @@ int main(int ac, char **av)
 				
 						std::cout << "Client " << pollFds[i].fd << " : " << buffer;
 				
-						size_t	j = 0;
+						/* size_t	j = 0;
 						while (j < pollFds.size())
 						{
 							if (pollFds[j].fd == serv.getServFd())
 								continue;
 							send(pollFds[j].fd, buffer, message, 0);
 							j++;
-						}
+						} */
 					}
 				}
 			}

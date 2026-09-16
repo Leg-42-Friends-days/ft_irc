@@ -1,4 +1,5 @@
 #include "../../includes/Server.hpp"
+#include "../../includes/Client.hpp"
 
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
 {
@@ -41,4 +42,26 @@ void	Server::initServ( void )
 		std::cerr << "Can't listen!" << std::endl;
 		throw std::exception();
 	}
+}
+
+void	Server::addClient(std::vector<struct pollfd> &pollFds)
+{
+	sockaddr_in client_addr;
+	socklen_t client_size = sizeof(client_addr);					
+    int clientFd = accept(this->_servfd, (sockaddr *) &client_addr, &client_size);
+	if (clientFd == -1)
+	{
+		std::cerr << "Error : accept fonction didn't work";
+		throw std::exception();
+	}
+	Client	newClient(clientFd);
+    this->_clientRepertory.push_back(newClient);
+	struct pollfd	clientPoll;
+	clientPoll.fd = clientFd;
+	clientPoll.events = POLLIN;
+	clientPoll.revents = 0;
+	pollFds.push_back(clientPoll);
+	std::cout << "New client : " << clientFd << " (" << inet_ntoa(client_addr.sin_addr) << ")" << std::endl;
+	const char* msg = "Welcome to the IRC server !\n";
+	send(clientFd, msg, std::strlen(msg), 0);
 }
