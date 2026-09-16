@@ -48,11 +48,9 @@ int main(int ac, char **av)
 		std::cerr << e.what() << '\n';
 		return(1);
 	}
-	
 	Server serv(av);
-	init_signals();
+	//init_signals();
 	// CTRL Z pour quitter
-
 	try
 	{
 		serv.initServ();
@@ -62,86 +60,86 @@ int main(int ac, char **av)
 		std::cerr << e.what() << '\n';
 		return(1);
 	}
-
-		fd_set master;
-		fd_set copy;
-
-		FD_ZERO(&master);
-		FD_SET(serv.getServFd(), &master);
-
-		int max_fd = serv.getServFd();
-
-		while (true)
+	
+	std::vector<struct pollfd> pollFds;
+	struct pollfd	servPoll;
+	servPoll.fd = serv.getServFd();
+	servPoll.events = POLLIN;
+	servPoll.revents = 0;
+	pollFds.push_back(servPoll);
+	
+	while (true)
+	{
+		
+		int	pollCount = poll(&pollFds[0], pollFds.size(), -1);
+		if (pollCount == -1)
 		{
-			copy = master;
-			int result = select(max_fd + 1, &copy, NULL, NULL, NULL);
-			if (result == -1)
+			std::cerr << "poll error" << std::endl;
+			break;
+		}
+		
+		size_t	i = 0;
+		while (i < pollFds.size())
+		{
+			if (pollFds[i].revents & POLLIN)
 			{
-				std::cerr << "Error : Select didn't work";
-				break;
-			}
-			
-			for (int fd = 0; fd <= max_fd; ++fd)
-			{
-				if (!FD_ISSET(fd, &copy))
-					continue;
-				if (fd == serv.getServFd())
+				if (pollFds[i].fd == serv.getServFd())
 				{
+					//nouvelle co
 					sockaddr_in client_addr;
-					socklen_t client_size = sizeof(client_addr);
-
-					int client = accept(serv.getServFd(), (sockaddr *) &client_addr, &client_size);
-
-					if (client == -1)
+					socklen_t client_size = sizeof(client_addr);					
+					int clientFd = accept(serv.getServFd(), (sockaddr *) &client_addr, &client_size);
+					if (clientFd == -1)
 					{
 						std::cerr << "Error : accept fonction didn't work";
 						continue;
 					}
-
-					std::cout << "New client : " << client << " (" << inet_ntoa(client_addr.sin_addr) << ")" << std::endl;
-
-					FD_SET(client, &master);
-
-					if (client > max_fd)
-						max_fd = client;
+					struct pollfd	clientPoll;
+					clientPoll.fd = clientFd;
+					clientPoll.events = POLLIN;
+					clientPoll.revents = 0;
+					pollFds.push_back(clientPoll);
+					std::cout << "New client : " << clientFd << " (" << inet_ntoa(client_addr.sin_addr) << ")" << std::endl;
 					const char* msg = "Welcome to the IRC server !\n";
-
-					send(client, msg, std::strlen(msg), 0);
+					send(clientFd, msg, std::strlen(msg), 0);
 				}
 				else
 				{
+					//recevoir
 					char buffer[4096];
-
-					int bytes = recv(fd, buffer, 4096, 0);
-
-					if (bytes <= 0)
+				
+					int message = recv(pollFds[i].fd, buffer, 4096, 0);
+				
+					if (message <= 0)
 					{
-						std::cout << "Client " << fd << " Disconnected" << std::endl;
-						close(fd);
-						FD_CLR(fd, &master);
+						std::cout << "Client " << pollFds[i].fd << " Disconnected" << std::endl;
+						close(pollFds[i].fd);
 					}
 					else
 					{
-						buffer[bytes] = '\0';
-
-						std::cout << "Client " << fd << " : " << buffer;
-
-						int other_fd;
-
-						for (other_fd = 0; other_fd <= max_fd; ++other_fd)
+						buffer[message] = '\0';
+				
+						std::cout << "Client " << pollFds[i].fd << " : " << buffer;
+				
+						size_t	j = 0;
+						while (j < pollFds.size())
 						{
-							if (other_fd == serv.getServFd())
+							if (pollFds[j].fd == serv.getServFd())
 								continue;
-							if (other_fd == fd)
-								continue;
-							if (!FD_ISSET(other_fd, &master))
-								continue;
-							send(other_fd, buffer, bytes, 0);
+							send(pollFds[j].fd, buffer, message, 0);
+							j++;
 						}
 					}
 				}
 			}
+			i++;
 		}
+	}
+
+			
+
+
+				
 
 		// SINGLE SERVEUR TEST
 		// sockaddr_in client;
