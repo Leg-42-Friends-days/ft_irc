@@ -71,6 +71,30 @@ void	Server::addClient( void )
 	send(clientFd, msg, std::strlen(msg), 0);
 }
 
+std::string trim(std::string &buffer)
+{
+	const std::string wspace = " \t\r\n";
+
+	size_t first = buffer.find_first_not_of(wspace);
+
+	if (first == std::string::npos)
+		return "";
+	
+	return (buffer.substr(first));
+}
+
+void callCommand(struct pollfd &pollFd, std::string &buffer)
+{
+	(void) pollFd;
+
+	std::string line = trim(buffer);
+
+	if (!std::strncmp(line.c_str(), "NICK", (line.length() - 1)))
+	{
+		
+	}
+};
+
 void	Server::receiveMess( struct pollfd &pollFd )
 {
 	char buffer[4096];
@@ -84,21 +108,20 @@ void	Server::receiveMess( struct pollfd &pollFd )
 	{
 		buffer[message] = '\0';
 
+		std::string inputBuffer = buffer;
+		callCommand(pollFd, inputBuffer);
 		std::cout << "Client " << pollFd.fd << " : " << buffer;
 
-		size_t	j = 0;
-		while (j < this->_pollFds.size())
-		{
-			if (this->_pollFds[j].fd != this->_servfd && this->_pollFds[j].fd != pollFd.fd)
-				send(this->_pollFds[j].fd, buffer, message, 0);
-			j++;
-		}
+
+		// size_t	j = 0;
+		// while (j < this->_pollFds.size())
+		// {
+		// 	if (this->_pollFds[j].fd != this->_servfd && this->_pollFds[j].fd != pollFd.fd)
+		// 		send(this->_pollFds[j].fd, buffer, message, 0);
+		// 	j++;
+		// }
 	}
 }
-
-
-
-
 
 
 // Execption

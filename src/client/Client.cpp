@@ -10,3 +10,4 @@ const int	&Client::getFdClient( void )
 {
     return (this->_fdClient);
 }
+

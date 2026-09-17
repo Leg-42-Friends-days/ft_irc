@@ -2,6 +2,7 @@
 
 #include "Includes.hpp"
 #include "Client.hpp"
+#include "Channel.hpp"
 
 class Server
 {
@@ -12,6 +13,8 @@ class Server
 		std::vector<Client>			_clientRepertory;
 		std::vector<struct pollfd> _pollFds;
 		Server(void);
+		std::map<Channel, Client> _lobby;
+
 	public:
 		Server(char **av);
 		const std::string	&getPortIP( void );
