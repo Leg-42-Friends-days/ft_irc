@@ -22,7 +22,6 @@ class Server
 		void	addClient( void );
 		void	receiveMess(struct pollfd &pollFd);
 
-
 		class ErrorBindFonction : public std::exception
 		{
 			public:
@@ -36,6 +35,12 @@ class Server
 		};
 
 		class ErrorListenFonction : public std::exception
+		{
+			public:
+				const char *what() const throw();
+		};
+
+		class ErrorAcceptFonction : public std::exception
 		{
 			public:
 				const char *what() const throw();

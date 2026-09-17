@@ -58,10 +58,7 @@ void	Server::addClient( void )
 	socklen_t client_size = sizeof(client_addr);					
     int clientFd = accept(this->_servfd, (sockaddr *) &client_addr, &client_size);
 	if (clientFd == -1)
-	{
-		std::cerr << "Error : accept fonction didn't work";
-		throw std::exception();
-	}
+		throw ErrorAcceptFonction();
 	Client	newClient(clientFd);
     this->_clientRepertory.push_back(newClient);
 	struct pollfd	clientPoll;
@@ -119,4 +116,9 @@ const char *Server::ErrorBindFonction::what() const throw()
 const char *Server::ErrorListenFonction::what() const throw()
 {
 	return ("Error : Can't listen!");
+}
+
+const char *Server::ErrorAcceptFonction::what() const throw()
+{
+	return ("Error : Can't accept!");
 }
