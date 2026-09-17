@@ -32,21 +32,13 @@ void	Server::initServ( void )
 		
 	this->_servfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_servfd == -1)
-	{
-		std::cerr << "Error : can't create a socket" << std::endl;
-		throw std::exception();
-	}
+		throw ErrorListenFonction();
 	
 	if (bind(this->_servfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
-	{
-		std::cerr << "Can't bind to IP/port";
-		throw std::exception();
-	}
+		throw ErrorBindFonction();
+
 	if (listen(this->_servfd, SOMAXCONN) == -1)
-	{
-		std::cerr << "Can't listen!" << std::endl;
-		throw std::exception();
-	}
+		throw ErrorListenFonction();
 }
 
 void	Server::initPollFds( void )
@@ -105,4 +97,26 @@ void	Server::receiveMess( struct pollfd &pollFd )
 			j++;
 		}
 	}
+}
+
+
+
+
+
+
+// Execption
+
+const char *Server::ErrorSocketFonction::what() const throw()
+{
+	return ("Error : Can't create a socket");
+}
+
+const char *Server::ErrorBindFonction::what() const throw()
+{
+	return ("Error : Can't bind to IP/port");
+}
+
+const char *Server::ErrorListenFonction::what() const throw()
+{
+	return ("Error : Can't listen!");
 }

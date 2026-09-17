@@ -21,4 +21,23 @@ class Server
 		void	initPollFds( void );
 		void	addClient( void );
 		void	receiveMess(struct pollfd &pollFd);
+
+
+		class ErrorBindFonction : public std::exception
+		{
+			public:
+				const char *what() const throw();
+		};
+
+		class ErrorSocketFonction : public std::exception
+		{
+			public:
+				const char *what() const throw();
+		};
+
+		class ErrorListenFonction : public std::exception
+		{
+			public:
+				const char *what() const throw();
+		};
 };

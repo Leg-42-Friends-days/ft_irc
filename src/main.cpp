@@ -25,16 +25,9 @@ void 	entryParsing(int &ac, char **av)
 {
 	//parsing de l'input du programme 
 	if (ac != 3)
-	{
-		std::cout << "execute : ./ircserv <port> <password>" << std::endl;
-		throw std::exception();
-	}
-
+		throw std::runtime_error("execute : ./ircserv <port> <password>");
 	if (checkPort(av[1]))
-	{
-		std::cout << "Error : invalid port!" << std::endl;
-		throw std::exception();
-	}
+		throw std::runtime_error("Error : invalid port!");
 }
 
 void	pollLoop(Server &serv)
