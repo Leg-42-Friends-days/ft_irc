@@ -62,7 +62,7 @@ void	pollLoop(Server &serv)
 				{
 					try
 					{
-						serv.receiveMess(serv.getpollFds()[i]);
+						serv.receiveMess(serv.getpollFds()[i], i);
 					}
 					catch(const std::exception& e)
 					{

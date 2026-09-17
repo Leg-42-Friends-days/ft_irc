@@ -23,7 +23,8 @@ class Server
 		void	initServ( void );
 		void	initPollFds( void );
 		void	addClient( void );
-		void	receiveMess(struct pollfd &pollFd);
+		void	receiveMess(struct pollfd &pollFd, int index);
+		void	callCommand(std::string &buffer, int index);
 
 		class ErrorBindFonction : public std::exception
 		{

@@ -7,11 +7,12 @@ class Client
 {
 	private:
 		int	_fdClient;
-		Client( void );
 		std::string _nickName;
 		std::string _userName;
+		Client( void );
 	public:
 		Client(int fd);
 		const int	&getFdClient( void );
-		// const std::string &getUserName(void);
+		const std::string &getNickName(void);
+		void changeNickName(std::string &line);
 };
