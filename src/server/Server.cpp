@@ -15,6 +15,11 @@ const int	&Server::getServFd( void )
 	return (this->_servfd);
 }
 
+std::vector<struct pollfd> &Server::getpollFds( void )
+{
+	return (this->_pollFds);
+}
+
 void	Server::initServ( void )
 {
 	addrinfo	hint;
@@ -44,7 +49,18 @@ void	Server::initServ( void )
 	}
 }
 
-void	Server::addClient(std::vector<struct pollfd> &pollFds)
+void	Server::initPollFds( void )
+{
+	std::vector<struct pollfd> pollFds;
+	struct pollfd	servPoll;
+	servPoll.fd = this->_servfd;
+	servPoll.events = POLLIN;
+	servPoll.revents = 0;
+	pollFds.push_back(servPoll);
+	this->_pollFds = pollFds;
+}
+
+void	Server::addClient( void )
 {
 	sockaddr_in client_addr;
 	socklen_t client_size = sizeof(client_addr);					
@@ -60,8 +76,33 @@ void	Server::addClient(std::vector<struct pollfd> &pollFds)
 	clientPoll.fd = clientFd;
 	clientPoll.events = POLLIN;
 	clientPoll.revents = 0;
-	pollFds.push_back(clientPoll);
+	this->_pollFds.push_back(clientPoll);
 	std::cout << "New client : " << clientFd << " (" << inet_ntoa(client_addr.sin_addr) << ")" << std::endl;
 	const char* msg = "Welcome to the IRC server !\n";
 	send(clientFd, msg, std::strlen(msg), 0);
+}
+
+void	Server::receiveMess( struct pollfd &pollFd )
+{
+	char buffer[4096];
+	int message = recv(pollFd.fd, buffer, 4096, 0);
+	if (message <= 0)
+	{
+		std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;
+		close(pollFd.fd);
+	}
+	else
+	{
+		buffer[message] = '\0';
+
+		std::cout << "Client " << pollFd.fd << " : " << buffer;
+
+		size_t	j = 0;
+		while (j < this->_pollFds.size())
+		{
+			if (this->_pollFds[j].fd != this->_servfd && this->_pollFds[j].fd != pollFd.fd)
+				send(this->_pollFds[j].fd, buffer, message, 0);
+			j++;
+		}
+	}
 }
