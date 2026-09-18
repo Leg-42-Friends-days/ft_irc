@@ -13,12 +13,12 @@ class Client
 		bool _hasPwd;
 		bool _hasNick;
 		bool _hasUser;
-		Client(const Client &other) ;
 		Client(void);
 		
 		public:
 		// Constructeur
 		Client(int fd, const std::string &host);
+		//Client(const Client &other) ;
 		Client& operator=(const Client &other);
 		
 		// Getters

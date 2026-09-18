@@ -24,7 +24,7 @@ class Server
 		void	initPollFds( void );
 		void	addClient( void );
 		void	receiveMess(struct pollfd &pollFd, int index);
-		//void	callCommand(std::string &buffer, int index);
+		void	callCommand(std::string &buffer, std::map<int, Client>::iterator it);
 
 		class ErrorBindFonction : public std::exception
 		{

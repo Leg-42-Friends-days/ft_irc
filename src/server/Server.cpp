@@ -67,9 +67,7 @@ void	Server::addClient( void )
 		throw ErrorAcceptFonction();
 	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 	Client	*newClient = new Client(clientFd, inet_ntoa(client_addr.sin_addr));
-	this->_clientRepertory.insert(std::map<int, Client>::value_type(clientFd, *newClient));
-
-
+	this->_clientRepertory.insert(std::pair<int, Client>(clientFd, *newClient));
 	struct pollfd	clientPoll;
 	clientPoll.fd = clientFd;
 	clientPoll.events = POLLIN;
@@ -94,27 +92,31 @@ std::string trim(std::string &buffer)
 	return (buffer.substr(first, (last - first + 1)));
 }
 
-/* void Server::callCommand(std::string &buffer, int index)
+void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it)
 {
+	(void)it;
 	std::string line = trim(buffer);
 
 	if (!std::strncmp(line.c_str(), "NICK ", 5))
 	{
-		_clientRepertory[index - 1].changeNickName(line);
+		//_clientRepertory[index - 1].changeNickName(line);
 	}
-}; */
+};
 
 void	Server::receiveMess( struct pollfd &pollFd , int index)
 {
+	(void)index;
 	char buffer[4096];
 	int message = recv(pollFd.fd, buffer, 4095, 0);
+	std::map<int, Client>::iterator	it;
+	it = this->_clientRepertory.find(pollFd.fd);
 	if (message <= 0)
 	{
-		// std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;
-		if (_clientRepertory[index - 1].getNickName().empty())
-			std::cout << "Client " << _clientRepertory[index - 1].getFdClient() << " Disconnected" << "\n";
+		std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;
+		if (it->second.getNickName().empty())
+			std::cout << "Client " << it->first << " Disconnected" << "\n";
 		else
-			std::cout << "Client " << _clientRepertory[index - 1].getNickName() << " Disconnected" << "\n";
+			std::cout << "Client " << it->second.getNickName() << " Disconnected" << "\n";
 		close(pollFd.fd);
 	}
 	else
@@ -122,12 +124,12 @@ void	Server::receiveMess( struct pollfd &pollFd , int index)
 		buffer[message] = '\0';
 
 		std::string inputBuffer = buffer;
-		//callCommand(inputBuffer, index);
+		callCommand(inputBuffer, it);
 		std::cout << "BUFFER > " << buffer;
-		if (_clientRepertory[index - 1].getNickName().empty())
-			std::cout << "Client " << _clientRepertory[index - 1].getFdClient() << "\n";
+		if (it->second.getNickName().empty())
+			std::cout << "Client " << it->second.getFdClient() << "\n";
 		else
-			std::cout << "Client " << _clientRepertory[index - 1].getNickName() << "\n";
+			std::cout << "Client " << it->second.getNickName() << "\n";
 		// size_t	j = 0;
 		// while (j < this->_pollFds.size())
 		// {
