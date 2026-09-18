@@ -23,9 +23,13 @@ class Server
 		void	initServ( void );
 		void	initPollFds( void );
 		void	addClient( void );
+		void	addChannel( std::string channelName );
 		void	receiveMess(struct pollfd &pollFd);
 		void	callCommand(std::string &buffer, std::map<int, Client>::iterator it);
+		//Channel
+		void	printChannels( void );
 
+		//exceptions
 		class ErrorBindFonction : public std::exception
 		{
 			public:

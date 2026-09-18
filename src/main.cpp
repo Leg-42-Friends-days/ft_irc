@@ -101,6 +101,8 @@ int main(int ac, char **av)
 	{
 		serv.initServ();
 		serv.initPollFds();
+		serv.addChannel("general");
+		serv.printChannels();
 		pollLoop(serv);
 	}
 	catch(const std::exception& e)

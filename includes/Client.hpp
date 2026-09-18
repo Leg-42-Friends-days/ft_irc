@@ -14,12 +14,12 @@ class Client
 		bool _hasNick;
 		bool _hasUser;
 		Client(void);
+		//Client(const Client &other) ;
+		Client& operator=(const Client &other);
 		
 		public:
 		// Constructeur
 		Client(int fd, const std::string &host);
-		//Client(const Client &other) ;
-		Client& operator=(const Client &other);
 		
 		// Getters
 		int	getFdClient(void) const; // mettre une reference sur un int coute plus chere qu'une copie

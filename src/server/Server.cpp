@@ -1,5 +1,6 @@
 #include "../../includes/Server.hpp"
 #include "../../includes/Client.hpp"
+#include "../../includes/Channel.hpp"
 
 // Constructeur
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
@@ -76,6 +77,18 @@ void	Server::addClient( void )
 	std::cout << "New client : " << clientFd << " (" << newClient->getHostName() << ")" << std::endl;
 	const char* msg = "Welcome to the IRC server !\n";
 	send(clientFd, msg, std::strlen(msg), 0);
+
+	//test channel
+	std::map<std::string, Channel>::iterator	it_general;
+	it_general = this->_lobby.find("general");
+	it_general->second.addMember(newClient);
+	it_general->second.printChannelMembers();
+}
+
+void	Server::addChannel( std::string channelName )
+{
+	Channel	*newChannel = new Channel(channelName);
+	this->_lobby.insert(std::pair<std::string, Channel>(channelName, *newChannel));
 }
 
 std::string trim(std::string &buffer)
@@ -135,6 +148,19 @@ void	Server::receiveMess( struct pollfd &pollFd)
 		// 		send(this->_pollFds[j].fd, buffer, message, 0);
 		// 	j++;
 		// }
+	}
+}
+
+void	Server::printChannels( void )
+{
+	std::map<std::string, Channel>::iterator	it;
+	std::map<std::string, Channel>::iterator	it_end;
+	it = this->_lobby.begin();
+	it_end = this->_lobby.end();
+	while(it != it_end)
+	{
+		std::cout << it->first << std::endl;
+		it ++;
 	}
 }
 
