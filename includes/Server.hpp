@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include "Includes.hpp"
 #include "Client.hpp"
@@ -10,7 +10,7 @@ class Server
 		std::string 				_portIP;
 		std::string 				_password;
 		int							_servfd;
-		std::vector<Client>			_clientRepertory;
+		std::map<int, Client*>		_clientRepertory;
 		std::vector<struct pollfd> _pollFds;
 		Server(void);
 		std::map<Channel, Client> _lobby;

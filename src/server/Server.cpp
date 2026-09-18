@@ -1,10 +1,12 @@
 #include "../../includes/Server.hpp"
 #include "../../includes/Client.hpp"
 
+// Constructeur
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
 {
 }
 
+// Fonctions GET
 const std::string    &Server::getPortIP( void )
 {
 	return (this->_portIP);
@@ -20,6 +22,7 @@ std::vector<struct pollfd> &Server::getpollFds( void )
 	return (this->_pollFds);
 }
 
+
 void	Server::initServ( void )
 {
 	addrinfo	hint;
@@ -29,13 +32,16 @@ void	Server::initServ( void )
 	hint.ai_flags = AI_PASSIVE;
 	int status = getaddrinfo(NULL, this->_portIP.c_str(), &hint, &servinfo);
 	(void)status;
-		
+
 	this->_servfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_servfd == -1)
 		throw ErrorListenFonction();
-	
+
+
 	if (bind(this->_servfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
-		throw ErrorBindFonction();
+		throw std::runtime_error("bind() failed on port " + this->_portIP);
+		// ex version : throw ErrorBindFonction();
+		// on peut opter pour un run_time error avec le port qui a fail, plus propre
 
 	if (listen(this->_servfd, SOMAXCONN) == -1)
 		throw ErrorListenFonction();
@@ -55,18 +61,19 @@ void	Server::initPollFds( void )
 void	Server::addClient( void )
 {
 	sockaddr_in client_addr;
-	socklen_t client_size = sizeof(client_addr);					
+	socklen_t client_size = sizeof(client_addr);
     int clientFd = accept(this->_servfd, (sockaddr *) &client_addr, &client_size);
 	if (clientFd == -1)
 		throw ErrorAcceptFonction();
-	Client	newClient(clientFd);
-    this->_clientRepertory.push_back(newClient);
+	fcntl(clientFd, F_SETFL, O_NONBLOCK);
+	Client	*newClient = new Client(clientFd, inet_ntoa(client_addr.sin_addr));
+    this->_clientRepertory[clientFd] = newClient;
 	struct pollfd	clientPoll;
 	clientPoll.fd = clientFd;
 	clientPoll.events = POLLIN;
 	clientPoll.revents = 0;
 	this->_pollFds.push_back(clientPoll);
-	std::cout << "New client : " << clientFd << " (" << inet_ntoa(client_addr.sin_addr) << ")" << std::endl;
+	std::cout << "New client : " << clientFd << " (" << newClient->getHostName() << ")" << std::endl;
 	const char* msg = "Welcome to the IRC server !\n";
 	send(clientFd, msg, std::strlen(msg), 0);
 }
@@ -98,7 +105,7 @@ void Server::callCommand(std::string &buffer, int index)
 void	Server::receiveMess( struct pollfd &pollFd , int index)
 {
 	char buffer[4096];
-	int message = recv(pollFd.fd, buffer, 4096, 0);
+	int message = recv(pollFd.fd, buffer, 4095, 0);
 	if (message <= 0)
 	{
 		// std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;

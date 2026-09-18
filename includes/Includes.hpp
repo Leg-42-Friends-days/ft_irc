@@ -10,6 +10,9 @@
 #include <string>
 #include <sys/select.h>
 #include <signal.h>
+#include <sstream>
+#include <map>
+#include <fcntl.h>
 
 #include <netinet/in.h>
 #include <cstdlib>
