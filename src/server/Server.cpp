@@ -103,9 +103,8 @@ void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it
 	}
 };
 
-void	Server::receiveMess( struct pollfd &pollFd , int index)
+void	Server::receiveMess( struct pollfd &pollFd)
 {
-	(void)index;
 	char buffer[4096];
 	int message = recv(pollFd.fd, buffer, 4095, 0);
 	std::map<int, Client>::iterator	it;
