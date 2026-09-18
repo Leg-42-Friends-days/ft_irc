@@ -94,12 +94,11 @@ std::string trim(std::string &buffer)
 
 void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it)
 {
-	(void)it;
 	std::string line = trim(buffer);
 
 	if (!std::strncmp(line.c_str(), "NICK ", 5))
 	{
-		//_clientRepertory[index - 1].changeNickName(line);
+		it->second.setNickName(line);
 	}
 };
 
