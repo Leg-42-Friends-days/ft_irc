@@ -83,6 +83,7 @@ void	Server::addClient( void )
 	it_general = this->_lobby.find("general");
 	it_general->second.addMember(newClient);
 	it_general->second.printChannelMembers();
+	std::cout << it_general->second.isAMember(newClient) << std::endl;
 }
 
 void	Server::addChannel( std::string channelName )
@@ -128,6 +129,7 @@ void	Server::receiveMess( struct pollfd &pollFd)
 			std::cout << "Client " << it->first << " Disconnected" << "\n";
 		else
 			std::cout << "Client " << it->second.getNickName() << " Disconnected" << "\n";
+		
 		close(pollFd.fd);
 	}
 	else
@@ -162,6 +164,12 @@ void	Server::printChannels( void )
 		std::cout << it->first << std::endl;
 		it ++;
 	}
+}
+
+void	Server::deleteFromAllTheChannels( Client *client)
+{
+	(void)client;
+	// parcourir tous les channels, regarder si il est dedans, si il est dedans utiliser delete from the channel
 }
 
 

@@ -28,6 +28,7 @@ class Server
 		void	callCommand(std::string &buffer, std::map<int, Client>::iterator it);
 		//Channel
 		void	printChannels( void );
+		void	deleteFromAllTheChannels( Client *client);
 
 		//exceptions
 		class ErrorBindFonction : public std::exception

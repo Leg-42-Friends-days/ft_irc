@@ -15,4 +15,5 @@ class Channel
 		void	addMember( Client *client);
 		void	printChannelMembers( void );
 		void	removeMember( Client *client);
+		bool	isAMember( Client *client);
 };
