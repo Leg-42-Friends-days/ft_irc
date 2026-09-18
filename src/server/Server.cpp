@@ -67,7 +67,7 @@ void	Server::addClient( void )
 		throw ErrorAcceptFonction();
 	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 	Client	*newClient = new Client(clientFd, inet_ntoa(client_addr.sin_addr));
-	this->_clientRepertory.insert(std::pair<int, Client>(clientFd, *newClient));
+	this->_clientRepertory.insert(std::pair<int, Client*>(clientFd, newClient));
 	struct pollfd	clientPoll;
 	clientPoll.fd = clientFd;
 	clientPoll.events = POLLIN;
@@ -86,19 +86,19 @@ std::string trim(std::string &buffer)
 
 	if (first == std::string::npos)
 		return "";
-	
+
 	size_t last = buffer.find_last_not_of(wspace);
 
 	return (buffer.substr(first, (last - first + 1)));
 }
 
-void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it)
+void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 {
 	std::string line = trim(buffer);
 
 	if (!std::strncmp(line.c_str(), "NICK ", 5))
 	{
-		it->second.setNickName(line);
+		it->second->setNickName(line);
 	}
 };
 
@@ -106,15 +106,17 @@ void	Server::receiveMess( struct pollfd &pollFd)
 {
 	char buffer[4096];
 	int message = recv(pollFd.fd, buffer, 4095, 0);
-	std::map<int, Client>::iterator	it;
+	std::map<int, Client*>::iterator	it;
 	it = this->_clientRepertory.find(pollFd.fd);
+	if(it == _clientRepertory.end())
+		return;
 	if (message <= 0)
 	{
 		std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;
-		if (it->second.getNickName().empty())
+		if (it->second->getNickName().empty())
 			std::cout << "Client " << it->first << " Disconnected" << "\n";
 		else
-			std::cout << "Client " << it->second.getNickName() << " Disconnected" << "\n";
+			std::cout << "Client " << it->second->getNickName() << " Disconnected" << "\n";
 		close(pollFd.fd);
 	}
 	else
@@ -124,10 +126,10 @@ void	Server::receiveMess( struct pollfd &pollFd)
 		std::string inputBuffer = buffer;
 		callCommand(inputBuffer, it);
 		std::cout << "BUFFER > " << buffer;
-		if (it->second.getNickName().empty())
-			std::cout << "Client " << it->second.getFdClient() << "\n";
+		if (it->second->getNickName().empty())
+			std::cout << "Client " << it->second->getFdClient() << "\n";
 		else
-			std::cout << "Client " << it->second.getNickName() << "\n";
+			std::cout << "Client " << it->second->getNickName() << "\n";
 		// size_t	j = 0;
 		// while (j < this->_pollFds.size())
 		// {
