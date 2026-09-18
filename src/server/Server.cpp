@@ -92,13 +92,58 @@ std::string trim(std::string &buffer)
 	return (buffer.substr(first, (last - first + 1)));
 }
 
+std::string upperCase(std::string buffer)
+{
+	for (size_t i = 0; i < buffer.length(); i++)
+		buffer[i] = toupper(buffer[i]);
+	return (buffer);
+}
+
+std::string cutLine(std::string &buffer, int len)
+{
+	int space = 0;
+	for (size_t i = len; i < buffer.length(); i++)
+	{
+		if (!(buffer[i] == ' '))
+			break;
+		else
+			space++;
+	}
+	
+	return (buffer.substr(len + space));
+}
+
+std::string checkPrefix(std::string &buffer)
+{
+	if (buffer[0] == ':')
+	{
+		for (size_t i = 0; i < buffer.length(); i++)
+		{
+			if (buffer[i] == ' ')
+			{
+				return (buffer.substr(i));
+			}
+		}
+	}
+	return buffer;
+}
+
 void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it)
 {
 	std::string line = trim(buffer);
 
-	if (!std::strncmp(line.c_str(), "NICK ", 5))
+	line = checkPrefix(line);
+	line = trim(line);
+	if (!std::strncmp(upperCase(line).c_str(), "NICK", 4))
 	{
-		it->second.setNickName(line);
+		std::string cut = cutLine(line, 4);
+		if (cut.empty())
+		{
+			std::cout << "431	ERR_NONICKNAMEGIVEN\n";
+			return;
+		}
+		it->second.setNickName(cut);
+		std::cout << "nickname set to " << cut << "\n";
 	}
 };
 
@@ -110,7 +155,7 @@ void	Server::receiveMess( struct pollfd &pollFd)
 	it = this->_clientRepertory.find(pollFd.fd);
 	if (message <= 0)
 	{
-		std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;
+		// std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;
 		if (it->second.getNickName().empty())
 			std::cout << "Client " << it->first << " Disconnected" << "\n";
 		else
@@ -123,11 +168,11 @@ void	Server::receiveMess( struct pollfd &pollFd)
 
 		std::string inputBuffer = buffer;
 		callCommand(inputBuffer, it);
-		std::cout << "BUFFER > " << buffer;
-		if (it->second.getNickName().empty())
-			std::cout << "Client " << it->second.getFdClient() << "\n";
-		else
-			std::cout << "Client " << it->second.getNickName() << "\n";
+		// if (it->second.getNickName().empty())
+			// std::cout << "Client " << it->second.getFdClient() << "\n";
+		// else
+			// std::cout << "Client " << it->second.getNickName() << "\n";
+
 		// size_t	j = 0;
 		// while (j < this->_pollFds.size())
 		// {
