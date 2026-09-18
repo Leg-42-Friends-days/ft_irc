@@ -12,6 +12,16 @@ _hasNick(false),
 _hasUser(false)
 {}
 
+Client& Client::operator=(const Client &other)
+{
+    if (this != &other)
+	{
+		//this->Bitcoin_map.clear();
+		//this->Bitcoin_map = rhs.Bitcoin_map;
+	}
+	return (*this);
+}
+
 // Getters
 int	Client::getFdClient(void) const
 {

@@ -4,8 +4,11 @@
 
 class Channel
 {
-    private:
-        std::string _lobbyName;
-    public:
+	private:
+		std::string _channelName;
+		std::map<int, Client*>	_members;
+		std::map<int, Client*>	_operators;
+		std::map<int, Client*>	_invited;
+	public:
 
 };

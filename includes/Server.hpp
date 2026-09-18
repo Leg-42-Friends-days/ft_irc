@@ -7,13 +7,13 @@
 class Server
 {
 	private:
-		std::string 				_portIP;
-		std::string 				_password;
-		int							_servfd;
-		std::map<int, Client*>		_clientRepertory;
-		std::vector<struct pollfd> _pollFds;
+		std::string 					_portIP;
+		std::string 					_password;
+		int								_servfd;
+		std::vector<struct pollfd>		_pollFds;
+		std::map<int, Client>			_clientRepertory;
+		std::map<std::string, Channel>	_lobby;
 		Server(void);
-		std::map<Channel, Client> _lobby;
 
 	public:
 		Server(char **av);
@@ -24,7 +24,7 @@ class Server
 		void	initPollFds( void );
 		void	addClient( void );
 		void	receiveMess(struct pollfd &pollFd, int index);
-		void	callCommand(std::string &buffer, int index);
+		//void	callCommand(std::string &buffer, int index);
 
 		class ErrorBindFonction : public std::exception
 		{

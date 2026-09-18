@@ -67,7 +67,9 @@ void	Server::addClient( void )
 		throw ErrorAcceptFonction();
 	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 	Client	*newClient = new Client(clientFd, inet_ntoa(client_addr.sin_addr));
-    this->_clientRepertory[clientFd] = newClient;
+	this->_clientRepertory.insert(std::map<int, Client>::value_type(clientFd, *newClient));
+
+
 	struct pollfd	clientPoll;
 	clientPoll.fd = clientFd;
 	clientPoll.events = POLLIN;
@@ -92,7 +94,7 @@ std::string trim(std::string &buffer)
 	return (buffer.substr(first, (last - first + 1)));
 }
 
-void Server::callCommand(std::string &buffer, int index)
+/* void Server::callCommand(std::string &buffer, int index)
 {
 	std::string line = trim(buffer);
 
@@ -100,7 +102,7 @@ void Server::callCommand(std::string &buffer, int index)
 	{
 		_clientRepertory[index - 1].changeNickName(line);
 	}
-};
+}; */
 
 void	Server::receiveMess( struct pollfd &pollFd , int index)
 {
@@ -120,7 +122,7 @@ void	Server::receiveMess( struct pollfd &pollFd , int index)
 		buffer[message] = '\0';
 
 		std::string inputBuffer = buffer;
-		callCommand(inputBuffer, index);
+		//callCommand(inputBuffer, index);
 		std::cout << "BUFFER > " << buffer;
 		if (_clientRepertory[index - 1].getNickName().empty())
 			std::cout << "Client " << _clientRepertory[index - 1].getFdClient() << "\n";
