@@ -151,11 +151,37 @@ void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it
 		cut = removeDoubleDot(cut);
 		// if (cut.empty())
 		// {
-		// 	std::cout << "431	ERR_NONICKNAMEGIVEN\n";
-		// 	return;
+		//	insert error no prompt NICK
 		// }
 		it->second.setNickName(cut);
 		std::cout << "nickname set to " << cut << "\n";
+	}
+	else if (!std::strncmp(upperCase(line).c_str(), "USER", 4))
+	{		
+		std::string cut = cutLine(line, 4);
+		cut = removeDoubleDot(cut);
+		// if (cut.empty())
+		// {
+		//	insert error no prompt USER
+		// }
+		it->second.setUserName(cut);
+		std::cout << "username set to " << cut << "\n";
+	}
+	else if (!std::strncmp(upperCase(line).c_str(), "PWD", 3))
+	{		
+		std::string cut = cutLine(line, 3);
+		if (_password == cut)
+		{
+			std::cout << "Valid password\n";
+			it->second.validatePassword();
+		}
+		else
+			std::cout << "Invalid password\n";
+	}
+	else
+	{
+		std::string msg = "command not found : " + line + "\n";
+		send(it->first, msg.c_str(), std::strlen(msg.c_str()), 0);
 	}
 };
 
