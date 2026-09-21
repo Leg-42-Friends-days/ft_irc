@@ -145,7 +145,7 @@ void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it
 	std::string line = trim(buffer);
 
 	line = checkPrefix(line);
-	if (!std::strncmp(upperCase(line).c_str(), "NICK", 4))
+	if (upperCase(line).compare(0, 4, "NICK") == 0)
 	{
 		std::string cut = cutLine(line, 4);
 		cut = removeDoubleDot(cut);
@@ -156,7 +156,7 @@ void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it
 		it->second.setNickName(cut);
 		std::cout << "nickname set to " << cut << "\n";
 	}
-	else if (!std::strncmp(upperCase(line).c_str(), "USER", 4))
+	else if (upperCase(line).compare(0, 4, "USER") == 0)
 	{		
 		std::string cut = cutLine(line, 4);
 		cut = removeDoubleDot(cut);
@@ -167,7 +167,7 @@ void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it
 		it->second.setUserName(cut);
 		std::cout << "username set to " << cut << "\n";
 	}
-	else if (!std::strncmp(upperCase(line).c_str(), "PWD", 3))
+	else if (upperCase(line).compare(0, 3, "PWD") == 0)
 	{		
 		std::string cut = cutLine(line, 3);
 		if (_password == cut)
