@@ -83,6 +83,11 @@ void	Server::addClient( void )
 	it_general = this->_lobby.find("general");
 	it_general->second.addMember(newClient);
 	it_general->second.printChannelMembers();
+	std::cout << "print is a member" << std::endl;
+	std::cout << it_general->second.isAMember(newClient) << std::endl;
+	it_general->second.removeMember(newClient);
+	it_general->second.printChannelMembers();
+	std::cout << "print is a member" << std::endl;
 	std::cout << it_general->second.isAMember(newClient) << std::endl;
 }
 
