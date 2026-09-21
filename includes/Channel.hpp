@@ -12,7 +12,8 @@ class Channel
 		std::map<int, Client*>	_invited;
 
 		std::string				_topic;
-		bool					_topic_change_operators_only;
+		bool					_topicChangeOperatorsOnly;
+		bool					_inviteOnly;
 		Channel( void );
 	public:
 		Channel(std::string channelName);
@@ -30,5 +31,6 @@ class Channel
 		bool	setTopic(const std::string &topic, Client *Client);
 
 		//modes
-		void	set_topic_change_operators_only( bool yesno );
+		void	setTopicChangeOperatorsOnly( bool yesno );
+		void	setInviteOnly( bool yesno );
 };

@@ -2,7 +2,7 @@
 #include "../../includes/Client.hpp"
 #include "../../includes/Channel.hpp"
 
-Channel::Channel(std::string channelName) : _topic_change_operators_only(0)
+Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0)
 {
 	this->_channelName = channelName;
 }
@@ -89,7 +89,9 @@ bool	Channel::isOperator( Client *client)
 
 bool	Channel::setTopic(const std::string &topic, Client *Client)
 {
-	if (this->_topic_change_operators_only == 1)
+	if (topic.empty())
+		std::cout << "Topic of the channel" << this->_channelName << " : " << this->_topic << std::endl;
+	if (this->_topicChangeOperatorsOnly == 1)
 	{
 		if (!this->isOperator(Client))
 			return (1);
@@ -98,10 +100,18 @@ bool	Channel::setTopic(const std::string &topic, Client *Client)
 	return (0);
 }
 
-void	Channel::set_topic_change_operators_only( bool yesno )
+void	Channel::setTopicChangeOperatorsOnly( bool yesno )
 {
 	if (yesno == 1)
-		this->_topic_change_operators_only = 1;
+		this->_topicChangeOperatorsOnly = 1;
 	if (yesno == 0)
-		this->_topic_change_operators_only = 0;
+		this->_topicChangeOperatorsOnly = 0;
+}
+
+void	Channel::setInviteOnly( bool yesno )
+{
+	if (yesno == 1)
+		this->_inviteOnly = 1;
+	else
+		this->_inviteOnly = 0;
 }
