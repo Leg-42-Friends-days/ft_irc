@@ -121,11 +121,23 @@ std::string checkPrefix(std::string &buffer)
 		{
 			if (buffer[i] == ' ')
 			{
-				return (buffer.substr(i));
+				std::string line = buffer.substr(i);
+				line = trim(line);
+				return (line);
 			}
 		}
 	}
 	return buffer;
+}
+
+std::string removeDoubleDot(std::string &buffer)
+{
+	int i = 0;
+	if (buffer[0] == ':')
+		i++;
+	std::string line = buffer.substr(i);
+	line = trim(line);
+	return (line);
 }
 
 void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it)
@@ -133,15 +145,15 @@ void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it
 	std::string line = trim(buffer);
 
 	line = checkPrefix(line);
-	line = trim(line);
 	if (!std::strncmp(upperCase(line).c_str(), "NICK", 4))
 	{
 		std::string cut = cutLine(line, 4);
-		if (cut.empty())
-		{
-			std::cout << "431	ERR_NONICKNAMEGIVEN\n";
-			return;
-		}
+		cut = removeDoubleDot(cut);
+		// if (cut.empty())
+		// {
+		// 	std::cout << "431	ERR_NONICKNAMEGIVEN\n";
+		// 	return;
+		// }
 		it->second.setNickName(cut);
 		std::cout << "nickname set to " << cut << "\n";
 	}
