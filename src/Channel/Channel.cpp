@@ -2,7 +2,7 @@
 #include "../../includes/Client.hpp"
 #include "../../includes/Channel.hpp"
 
-Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0)
+Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _inviteOnly(0), _password(0)
 {
 	this->_channelName = channelName;
 }
@@ -100,6 +100,22 @@ bool	Channel::setTopic(const std::string &topic, Client *Client)
 	return (0);
 }
 
+bool	Channel::invite(Client *inviter, Client *guest)
+{
+	if (this->_inviteOnly == 1)
+	{
+		if (!this->isOperator(inviter))
+			return (1);
+	}
+	else
+	{
+		if (!this->isAMember(inviter))
+			return (1);
+	}
+	this->addMember(guest);
+	return (0);
+}
+
 void	Channel::setTopicChangeOperatorsOnly( bool yesno )
 {
 	if (yesno == 1)
@@ -114,4 +130,26 @@ void	Channel::setInviteOnly( bool yesno )
 		this->_inviteOnly = 1;
 	else
 		this->_inviteOnly = 0;
+}
+
+bool	Channel::setPassword(const std::string &password, bool yesno)
+{
+	if (password.empty())
+		return (1);
+	if (yesno)
+	{
+		this->_password = password;
+		return (0);
+	}
+	if (!yesno)
+	{
+		if (this->_password != password)
+			return (1);
+		else
+		{
+			this->_password = password;
+			return (0);
+		}
+	}
+	return (1);
 }
