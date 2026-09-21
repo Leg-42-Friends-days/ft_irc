@@ -178,6 +178,31 @@ void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it
 		else
 			std::cout << "Invalid password\n";
 	}
+	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
+	// {
+		// std::string cut = cutLine(line, 4);
+	// 	//insert JOIN fonction
+	// }
+	// else if (upperCase(line).compare(0, 7, "PRIVMSG") == 0)
+	// {
+		// std::string cut = cutLine(line, 7);
+	// 	//insert PRIVMSG fonction		
+	// }
+	// else if (upperCase(line).compare(0, 5, "TOPIC") == 0)
+	// {
+	// std::string cut = cutLine(line, 5);
+	// 	//insert TOPIC fonction
+	// else if (upperCase(line).compare(0, 6, "INVITE") == 0)
+	// {
+		// std::string cut = cutLine(line, 7);
+		// insert INVITE fonction
+	// }
+	// else if (upperCase(line).compare(0, 4, "KICK") == 0)
+	// {
+	// std::string cut = cutLine(line, 4);
+	// 	//insert KICK fonction
+	// }
+	// }
 	else
 	{
 		std::string msg = "command not found : " + line + "\n";
