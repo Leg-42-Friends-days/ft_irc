@@ -11,7 +11,7 @@ class Server
 		std::string 					_password;
 		int								_servfd;
 		std::vector<struct pollfd>		_pollFds;
-		std::map<int, Client>			_clientRepertory;
+		std::map<int, Client*>			_clientRepertory;
 		std::map<std::string, Channel>	_lobby;
 		Server(void);
 
@@ -25,7 +25,7 @@ class Server
 		void	addClient( void );
 		void	addChannel( std::string channelName );
 		void	receiveMess(struct pollfd &pollFd);
-		void	callCommand(std::string &buffer, std::map<int, Client>::iterator it);
+		void	callCommand(std::string &buffer, std::map<int, Client*>::iterator it);
 		//Channel
 		void	printChannels( void );
 		void	deleteFromAllTheChannels( Client *client);
