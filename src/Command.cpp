@@ -8,8 +8,12 @@
 
 // void Command::executeCommand(std::string &buffer, std::map<int, Client>::iterator it)
 // {
-//     std::string commandName[1] = {"NICK"};
+// 	std::string contentCmd[3] = {"NICK", "USER", "PWD"};
+// 	void (*cmd[3])(std::string &buffer, std::map<int, Client>::iterator it) = {nickCommand, userCommand};
 
-//     // void (Command::*list[1])(void) = {&Command::nickcmd};
-//     void (Command::*list[1])(std::string, std::map<int, Client>::iterator) = {&Command::nickcmd};
+// 	for (int i = 0; i < 3; i++)
+// 	{
+// 		if (upperCase(first) == contentCmd[i])
+// 			cmd[i](line, it);
+// 	}
 // }   

@@ -22,7 +22,6 @@ std::vector<struct pollfd> &Server::getpollFds( void )
 	return (this->_pollFds);
 }
 
-
 void	Server::initServ( void )
 {
 	addrinfo	hint;
@@ -144,15 +143,36 @@ void nickCommand(std::string &buffer, std::map<int, Client>::iterator it)
 {
 	std::string cut = cutLine(buffer, 4);
 	cut = removeDoubleDot(cut);
+	// 	// if (cut.empty())
+	// 	// {
+	// 	//	insert error no prompt NICK
+	// 	// }
 	it->second.setNickName(cut);
 	std::cout << "nickname set to " << cut << "\n";
 }
 
 void userCommand(std::string &buffer, std::map<int, Client>::iterator it)
 {
-	(void) buffer;
-	(void) it;
-	std::cout << "USER\n";
+	std::string cut = cutLine(buffer, 4);
+	cut = removeDoubleDot(cut);
+	// if (cut.empty())
+	// {
+	//	insert error no prompt USER
+	// }
+	it->second.setUserName(cut);
+	std::cout << "username set to " << cut << "\n";
+}
+
+void passwordCommand(std::string &buffer, std::map<int, Client>::iterator it)
+{
+		std::string cut = cutLine(buffer, 3);
+		// if (_password == cut)
+		// {
+			std::cout << "Valid password\n";
+			it->second.validatePassword();
+		// }
+		// else
+			// std::cout << "Invalid password\n";
 }
 
 void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it)
@@ -167,47 +187,14 @@ void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it
 
 	stream >> first;
 
-	std::string contentCmd[2] = {"NICK", "USER"};
-	void (*cmd[2])(std::string &buffer, std::map<int, Client>::iterator it) = {nickCommand, userCommand};
+	std::string contentCmd[3] = {"NICK", "USER", "PWD"};
+	void (*cmd[3])(std::string &buffer, std::map<int, Client>::iterator it) = {nickCommand, userCommand};
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		if (upperCase(first) == contentCmd[i])
 			cmd[i](line, it);
 	}
-	// if (upperCase(line).compare(0, 4, "NICK") == 0)
-	// {
-	// 	std::string cut = cutLine(line, 4);
-	// 	cut = removeDoubleDot(cut);
-	// 	// if (cut.empty())
-	// 	// {
-	// 	//	insert error no prompt NICK
-	// 	// }
-	// 	it->second.setNickName(cut);
-	// 	std::cout << "nickname set to " << cut << "\n";
-	// }
-	// else if (upperCase(line).compare(0, 4, "USER") == 0)
-	// {		
-	// 	std::string cut = cutLine(line, 4);
-	// 	cut = removeDoubleDot(cut);
-	// 	// if (cut.empty())
-	// 	// {
-	// 	//	insert error no prompt USER
-	// 	// }
-	// 	it->second.setUserName(cut);
-	// 	std::cout << "username set to " << cut << "\n";
-	// }
-	// else if (upperCase(line).compare(0, 3, "PWD") == 0)
-	// {		
-	// 	std::string cut = cutLine(line, 3);
-	// 	if (_password == cut)
-	// 	{
-	// 		std::cout << "Valid password\n";
-	// 		it->second.validatePassword();
-	// 	}
-	// 	else
-	// 		std::cout << "Invalid password\n";
-	// }
 	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
 	// {
 		// std::string cut = cutLine(line, 4);
