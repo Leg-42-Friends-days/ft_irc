@@ -79,7 +79,7 @@ void	Server::addClient( void )
 	send(clientFd, msg, std::strlen(msg), 0);
 
 	//test channel
-	std::map<std::string, Channel>::iterator	it_general;
+	/* std::map<std::string, Channel>::iterator	it_general;
 	it_general = this->_lobby.find("general");
 	it_general->second.addMember(newClient);
 	it_general->second.printChannelMembers();
@@ -88,7 +88,7 @@ void	Server::addClient( void )
 	it_general->second.removeMember(newClient);
 	it_general->second.printChannelMembers();
 	std::cout << "print is a member" << std::endl;
-	std::cout << it_general->second.isAMember(newClient) << std::endl;
+	std::cout << it_general->second.isAMember(newClient) << std::endl; */
 }
 
 void	Server::addChannel( std::string channelName )

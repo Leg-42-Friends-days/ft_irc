@@ -2,7 +2,7 @@
 #include "../../includes/Client.hpp"
 #include "../../includes/Channel.hpp"
 
-Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _inviteOnly(0), _password(0)
+Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _inviteOnly(0), _password("")
 {
 	this->_channelName = channelName;
 }
