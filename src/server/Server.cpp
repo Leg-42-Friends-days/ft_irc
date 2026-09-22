@@ -111,6 +111,91 @@ std::string trim(std::string &buffer)
 	return (buffer.substr(first, (last - first + 1)));
 }
 
+std::string upperCase(std::string buffer)
+{
+	for (size_t i = 0; i < buffer.length(); i++)
+		buffer[i] = toupper(buffer[i]);
+	return (buffer);
+}
+
+std::string cutLine(std::string &buffer, int len)
+{
+	int space = 0;
+	for (size_t i = len; i < buffer.length(); i++)
+	{
+		if (!(std::isspace(buffer[i])))
+			break;
+		else
+			space++;
+	}
+	
+	return (buffer.substr(len + space));
+}
+
+std::string checkPrefix(std::string &buffer)
+{
+	if (buffer[0] == ':')
+	{
+		for (size_t i = 0; i < buffer.length(); i++)
+		{
+			if (std::isspace(buffer[i]))
+			{
+				std::string line = buffer.substr(i);
+				line = trim(line);
+				return (line);
+			}
+		}
+	}
+	return buffer;
+}
+
+std::string removeDoubleDot(std::string &buffer)
+{
+	int i = 0;
+	if (buffer[0] == ':')
+		i++;
+	std::string line = buffer.substr(i);
+	line = trim(line);
+	return (line);
+}
+
+void nickCommand(std::string &buffer, std::map<int, Client>::iterator it)
+{
+	std::string cut = cutLine(buffer, 4);
+	cut = removeDoubleDot(cut);
+	// 	// if (cut.empty())
+	// 	// {
+	// 	//	insert error no prompt NICK
+	// 	// }
+	it->second.setNickName(cut);
+	std::cout << "nickname set to " << cut << "\n";
+}
+
+void userCommand(std::string &buffer, std::map<int, Client>::iterator it)
+{
+	std::string cut = cutLine(buffer, 4);
+	cut = removeDoubleDot(cut);
+	// if (cut.empty())
+	// {
+	//	insert error no prompt USER
+	// }
+	it->second.setUserName(cut);
+	std::cout << "username set to " << cut << "\n";
+}
+
+void passwordCommand(std::string &buffer, std::map<int, Client>::iterator it)
+{
+		std::string cut = cutLine(buffer, 3);
+		// if (_password == cut)
+		// {
+			std::cout << "Valid password\n";
+			it->second.validatePassword();
+		// }
+		// else
+			// std::cout << "Invalid password\n";
+			//what
+}
+
 void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 {
 	std::string line = trim(buffer);
