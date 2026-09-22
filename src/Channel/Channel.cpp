@@ -2,15 +2,21 @@
 #include "../../includes/Client.hpp"
 #include "../../includes/Channel.hpp"
 
-Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _inviteOnly(0), _password("")
+Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _inviteOnly(0), _password(""), _nbMaxOfClients(0)
 {
 	this->_channelName = channelName;
 }
 
-void	Channel::addMember( Client *client)
+bool	Channel::addMember( Client *client)
 {
+	if (this->_nbMaxOfClients != 0)
+	{
+		if (this->_members.size() == this->_nbMaxOfClients)
+			return (1);
+	}
 	std::cout << "Ajout du membre " << client->getFdClient() << " au serveur " << this->_channelName << std::endl;
 	this->_members.insert(std::pair<int, Client*>(client->getFdClient(), client));
+	return (0);
 }
 
 void	Channel::printChannelMembers( void )
@@ -90,7 +96,7 @@ bool	Channel::isOperator( Client *client)
 bool	Channel::setTopic(const std::string &topic, Client *Client)
 {
 	if (topic.empty())
-		std::cout << "Topic of the channel" << this->_channelName << " : " << this->_topic << std::endl;
+		this->_topic.clear();
 	if (this->_topicChangeOperatorsOnly == 1)
 	{
 		if (!this->isOperator(Client))
@@ -98,6 +104,11 @@ bool	Channel::setTopic(const std::string &topic, Client *Client)
 	}
 	this->_topic = topic;
 	return (0);
+}
+
+void	Channel::printTopic( void )
+{
+	std::cout << "le topic : " << this->_topic << std::endl;
 }
 
 bool	Channel::invite(Client *inviter, Client *guest)
@@ -114,6 +125,14 @@ bool	Channel::invite(Client *inviter, Client *guest)
 	}
 	this->addMember(guest);
 	return (0);
+}
+
+bool	Channel::checkpassword(const std::string &password)
+{
+	if (password == this->_password)
+		return (1);
+	else
+		return (0);
 }
 
 void	Channel::setTopicChangeOperatorsOnly( bool yesno )
@@ -152,4 +171,38 @@ bool	Channel::setPassword(const std::string &password, bool yesno)
 		}
 	}
 	return (1);
+}
+
+bool	Channel::setMaxOfClients(const unsigned int &nb, bool yesno)
+{
+	if (nb == 0)
+		return (1);
+	if (yesno == 1)
+		this->_nbMaxOfClients = nb;
+	else
+	{
+		if (this->_nbMaxOfClients != 0)
+			this->_nbMaxOfClients = 0;
+	}
+	return (0);
+}
+
+void	Channel::sendToAllMembers(const std::string &message)
+{
+	size_t	i = 0;
+	while (i < this->_members.size())
+	{
+		send(this->_members[i]->getFdClient(), message.c_str(), message.size(), 0);
+		i++;
+	}
+}
+
+void	Channel::sendToAllOperators(const std::string &message)
+{
+	size_t	i = 0;
+	while (i < this->_operators.size())
+	{
+		send(this->_operators[i]->getFdClient(), message.c_str(), message.size(), 0);
+		i++;
+	}
 }
