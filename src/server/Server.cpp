@@ -173,6 +173,7 @@ void passwordCommand(std::string &buffer, std::map<int, Client>::iterator it)
 		// }
 		// else
 			// std::cout << "Invalid password\n";
+			//what
 }
 
 void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it)
