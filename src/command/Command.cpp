@@ -1,7 +1,7 @@
-#include "../includes/Command.hpp"
-#include "../includes/Client.hpp"
-#include "../includes/Server.hpp"
-#include "../includes/Replies.hpp"
+#include "Command.hpp"
+#include "Client.hpp"
+#include "Replies.hpp"
+#include "Server.hpp"
 
 static const CmdInfo cmdInfo[] = {
     {"NICK", cmdNick, 0, false}, // 431 gere par handler
