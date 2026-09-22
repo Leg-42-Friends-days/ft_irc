@@ -159,7 +159,7 @@ std::string removeDoubleDot(std::string &buffer)
 	return (line);
 }
 
-void nickCommand(std::string &buffer, std::map<int, Client>::iterator it)
+void nickCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 {
 	std::string cut = cutLine(buffer, 4);
 	cut = removeDoubleDot(cut);
@@ -167,11 +167,11 @@ void nickCommand(std::string &buffer, std::map<int, Client>::iterator it)
 	// 	// {
 	// 	//	insert error no prompt NICK
 	// 	// }
-	it->second.setNickName(cut);
+	it->second->setNickName(cut);
 	std::cout << "nickname set to " << cut << "\n";
 }
 
-void userCommand(std::string &buffer, std::map<int, Client>::iterator it)
+void userCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 {
 	std::string cut = cutLine(buffer, 4);
 	cut = removeDoubleDot(cut);
@@ -179,17 +179,17 @@ void userCommand(std::string &buffer, std::map<int, Client>::iterator it)
 	// {
 	//	insert error no prompt USER
 	// }
-	it->second.setUserName(cut);
+	it->second->setUserName(cut);
 	std::cout << "username set to " << cut << "\n";
 }
 
-void passwordCommand(std::string &buffer, std::map<int, Client>::iterator it)
+void passwordCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 {
 		std::string cut = cutLine(buffer, 3);
 		// if (_password == cut)
 		// {
 			std::cout << "Valid password\n";
-			it->second.validatePassword();
+			it->second->validatePassword();
 		// }
 		// else
 			// std::cout << "Invalid password\n";
@@ -200,10 +200,52 @@ void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator i
 {
 	std::string line = trim(buffer);
 
-	if (!std::strncmp(line.c_str(), "NICK ", 5))
+	while (line[0] == ':')
+		line = checkPrefix(line);
+	std::stringstream stream(line);
+
+	std::string first;
+
+	stream >> first;
+
+	std::string contentCmd[3] = {"NICK", "USER", "PWD"};
+	void (*cmd[3])(std::string &buffer, std::map<int, Client*>::iterator it) = {nickCommand, userCommand};
+
+	for (int i = 0; i < 3; i++)
 	{
-		it->second->setNickName(line);
+		if (upperCase(first) == contentCmd[i])
+			cmd[i](line, it);
 	}
+	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
+	// {
+		// std::string cut = cutLine(line, 4);
+	// 	//insert JOIN fonction
+	// }
+	// else if (upperCase(line).compare(0, 7, "PRIVMSG") == 0)
+	// {
+		// std::string cut = cutLine(line, 7);
+	// 	//insert PRIVMSG fonction		
+	// }
+	// else if (upperCase(line).compare(0, 5, "TOPIC") == 0)
+	// {
+	// std::string cut = cutLine(line, 5);
+	// 	//insert TOPIC fonction
+	// else if (upperCase(line).compare(0, 6, "INVITE") == 0)
+	// {
+		// std::string cut = cutLine(line, 7);
+		// insert INVITE fonction
+	// }
+	// else if (upperCase(line).compare(0, 4, "KICK") == 0)
+	// {
+	// std::string cut = cutLine(line, 4);
+	// 	//insert KICK fonction
+	// }
+	// }
+	// else
+	// {
+	// 	std::string msg = "command not found : " + line + "\n";
+	// 	send(it->first, msg.c_str(), std::strlen(msg.c_str()), 0);
+	// }
 };
 
 void	Server::receiveMess( struct pollfd &pollFd)
