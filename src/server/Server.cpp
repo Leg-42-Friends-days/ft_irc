@@ -1,6 +1,7 @@
 #include "../../includes/Server.hpp"
 #include "../../includes/Client.hpp"
 #include "../../includes/Channel.hpp"
+#include "../../includes/Message.hpp"
 
 // Constructeur
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
@@ -204,16 +205,25 @@ void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator i
 		line = checkPrefix(line);
 	std::stringstream stream(line);
 
-	std::string first;
+	Message msg;
+	std::string content;
 
-	stream >> first;
+	stream >> msg.cmd;
+
+	std::cout << msg.cmd << "\n";
+
+	while (stream >> content)
+	{
+		msg.params.push_back(content);
+		std::cout << content << "\n";
+	}
 
 	std::string contentCmd[3] = {"NICK", "USER", "PWD"};
 	void (*cmd[3])(std::string &buffer, std::map<int, Client*>::iterator it) = {nickCommand, userCommand};
 
 	for (int i = 0; i < 3; i++)
 	{
-		if (upperCase(first) == contentCmd[i])
+		if (upperCase(msg.cmd) == contentCmd[i])
 			cmd[i](line, it);
 	}
 	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
@@ -258,7 +268,6 @@ void	Server::receiveMess( struct pollfd &pollFd)
 		return;
 	if (message <= 0)
 	{
-		std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;
 		if (it->second->getNickName().empty())
 			std::cout << "Client " << it->first << " Disconnected" << "\n";
 		else
