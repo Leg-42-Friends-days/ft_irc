@@ -104,7 +104,7 @@ std::string cutLine(std::string &buffer, int len)
 	int space = 0;
 	for (size_t i = len; i < buffer.length(); i++)
 	{
-		if (!(buffer[i] == ' '))
+		if (!(std::isspace(buffer[i])))
 			break;
 		else
 			space++;
@@ -119,7 +119,7 @@ std::string checkPrefix(std::string &buffer)
 	{
 		for (size_t i = 0; i < buffer.length(); i++)
 		{
-			if (buffer[i] == ' ')
+			if (std::isspace(buffer[i]))
 			{
 				std::string line = buffer.substr(i);
 				line = trim(line);
@@ -140,44 +140,74 @@ std::string removeDoubleDot(std::string &buffer)
 	return (line);
 }
 
+void nickCommand(std::string &buffer, std::map<int, Client>::iterator it)
+{
+	std::string cut = cutLine(buffer, 4);
+	cut = removeDoubleDot(cut);
+	it->second.setNickName(cut);
+	std::cout << "nickname set to " << cut << "\n";
+}
+
+void userCommand(std::string &buffer, std::map<int, Client>::iterator it)
+{
+	(void) buffer;
+	(void) it;
+	std::cout << "USER\n";
+}
+
 void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it)
 {
 	std::string line = trim(buffer);
 
-	line = checkPrefix(line);
-	if (upperCase(line).compare(0, 4, "NICK") == 0)
+	while (line[0] == ':')
+		line = checkPrefix(line);
+	std::stringstream stream(line);
+
+	std::string first;
+
+	stream >> first;
+
+	std::string contentCmd[2] = {"NICK", "USER"};
+	void (*cmd[2])(std::string &buffer, std::map<int, Client>::iterator it) = {nickCommand, userCommand};
+
+	for (int i = 0; i < 2; i++)
 	{
-		std::string cut = cutLine(line, 4);
-		cut = removeDoubleDot(cut);
-		// if (cut.empty())
-		// {
-		//	insert error no prompt NICK
-		// }
-		it->second.setNickName(cut);
-		std::cout << "nickname set to " << cut << "\n";
+		if (upperCase(first) == contentCmd[i])
+			cmd[i](line, it);
 	}
-	else if (upperCase(line).compare(0, 4, "USER") == 0)
-	{		
-		std::string cut = cutLine(line, 4);
-		cut = removeDoubleDot(cut);
-		// if (cut.empty())
-		// {
-		//	insert error no prompt USER
-		// }
-		it->second.setUserName(cut);
-		std::cout << "username set to " << cut << "\n";
-	}
-	else if (upperCase(line).compare(0, 3, "PWD") == 0)
-	{		
-		std::string cut = cutLine(line, 3);
-		if (_password == cut)
-		{
-			std::cout << "Valid password\n";
-			it->second.validatePassword();
-		}
-		else
-			std::cout << "Invalid password\n";
-	}
+	// if (upperCase(line).compare(0, 4, "NICK") == 0)
+	// {
+	// 	std::string cut = cutLine(line, 4);
+	// 	cut = removeDoubleDot(cut);
+	// 	// if (cut.empty())
+	// 	// {
+	// 	//	insert error no prompt NICK
+	// 	// }
+	// 	it->second.setNickName(cut);
+	// 	std::cout << "nickname set to " << cut << "\n";
+	// }
+	// else if (upperCase(line).compare(0, 4, "USER") == 0)
+	// {		
+	// 	std::string cut = cutLine(line, 4);
+	// 	cut = removeDoubleDot(cut);
+	// 	// if (cut.empty())
+	// 	// {
+	// 	//	insert error no prompt USER
+	// 	// }
+	// 	it->second.setUserName(cut);
+	// 	std::cout << "username set to " << cut << "\n";
+	// }
+	// else if (upperCase(line).compare(0, 3, "PWD") == 0)
+	// {		
+	// 	std::string cut = cutLine(line, 3);
+	// 	if (_password == cut)
+	// 	{
+	// 		std::cout << "Valid password\n";
+	// 		it->second.validatePassword();
+	// 	}
+	// 	else
+	// 		std::cout << "Invalid password\n";
+	// }
 	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
 	// {
 		// std::string cut = cutLine(line, 4);
@@ -203,11 +233,11 @@ void Server::callCommand(std::string &buffer, std::map<int, Client>::iterator it
 	// 	//insert KICK fonction
 	// }
 	// }
-	else
-	{
-		std::string msg = "command not found : " + line + "\n";
-		send(it->first, msg.c_str(), std::strlen(msg.c_str()), 0);
-	}
+	// else
+	// {
+	// 	std::string msg = "command not found : " + line + "\n";
+	// 	send(it->first, msg.c_str(), std::strlen(msg.c_str()), 0);
+	// }
 };
 
 void	Server::receiveMess( struct pollfd &pollFd)

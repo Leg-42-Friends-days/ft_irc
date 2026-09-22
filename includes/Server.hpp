@@ -3,6 +3,7 @@
 #include "Includes.hpp"
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "Command.hpp"
 
 class Server
 {
