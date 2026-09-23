@@ -96,13 +96,21 @@ void	Server::deleteClient(Client *client)
 {
 	this->deleteFromAllTheChannels(client);
 	std::vector<struct pollfd>::iterator	it;
+	it = this->_pollFds.begin();
 	while (it != this->_pollFds.end())
 	{
 		if (it->fd == client->getFdClient())
+		{
 			this->_pollFds.erase(it);
+			break;
+		}
 		it++;
 	}
 	close(client->getFdClient());
+	if (client->getNickName().empty())
+		std::cout << "Client " << client->getFdClient() << " Disconnected" << "\n";
+	else
+		std::cout << "Client " << client->getNickName() << " Disconnected" << "\n";
 	std::map<int, Client*>::iterator	it_client;
 	it_client = this->_clientRepertory.find(client->getFdClient());
 	if (it_client == this->_clientRepertory.end())
@@ -110,12 +118,6 @@ void	Server::deleteClient(Client *client)
 	else
 		this->_clientRepertory.erase(it_client);
 	delete(it_client->second);
-	/* std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;
-	if (it->second->getNickName().empty())
-	std::cout << "Client " << it->first << " Disconnected" << "\n";
-	else
-	std::cout << "Client " << it->second->getNickName() << " Disconnected" << "\n";
-	close(pollFd.fd); */
 }
 
 void	Server::deleteFromAllTheChannels( Client *client)
