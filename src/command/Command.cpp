@@ -7,7 +7,7 @@
 static const CmdInfo cmdInfo[] = {
     {"NICK", cmdNick, 0, false}, // 431 gere par handler
     {"PASS", cmdPass, 1, false},
-    // {"USER", cmdUser, 4, false},
+    {"USER", cmdUser, 4, false},
     // {"TOPIC", cmdTopic, 1, true},
     // {"PING", cmdPing, 0, false}, // 409 gere par handler
     // {"INVITE", cmdInvite, 2, true},
