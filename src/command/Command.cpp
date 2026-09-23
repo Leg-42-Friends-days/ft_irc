@@ -66,19 +66,6 @@ void dispatcher(Server &serv, Client &client, const Message &message)
 }
 
 // static en attendant de savoi où la mettre
-static std::string upperCase(std::string buffer)
-{
-	for (size_t i = 0; i < buffer.length(); i++)
-		buffer[i] = toupper(static_cast<unsigned char>(buffer[i]));
-	return (buffer);
-}
-
-std::string nickOrStar(const Client &client)
-{
-    if (client.getNickName().empty())
-        return "*";
-    return client.getNickName();
-}    
 
 void sendResponse(const Client &client, std::string line)
 {
