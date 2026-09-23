@@ -28,6 +28,7 @@ class Server
 		void	callCommand(std::string &buffer, Client* client);
 		//Channel
 		void	printChannels( void );
+		int		isChannel( std::string channelName);
 		void	deleteFromAllTheChannels( Client *client);
 
 		//exceptions

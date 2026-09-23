@@ -8,7 +8,7 @@ static const CmdInfo cmdInfo[] = {
     {"NICK", cmdNick, 0, false}, // 431 gere par handler
     // {"PASS", cmdPass, 1, false},
     // {"USER", cmdUser, 4, false},
-    // {"TOPIC", cmdTopic, 1, true},
+    {"TOPIC", cmdTopic, 1, true},
     // {"PING", cmdPing, 0, false}, // 409 gere par handler
     // {"INVITE", cmdInvite, 2, true},
     // {"JOIN", cmdJoin, 1, true},
@@ -137,10 +137,29 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 // {
 
 // }
-// void cmdTopic(Server &serv, Client &client, const Message &message)
-// {
 
-// }
+void cmdTopic(Server &serv, Client &client, const Message &message)
+{
+
+    if(!serv.isChannel(message.params[0]))
+        assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[0], "No such channel");
+
+    if()
+    // Channel existe mais je suis pas dedans
+    // 442 ERR_NOTONCHANNEL
+
+    // Mode present operator only pour changer le topic
+    // ERR_CHANOPRIVSNEEDED
+
+    // To be see
+    // ERR_NOCHANMODES
+
+    // tout se passe bien
+    // RPL_TOPIC
+
+    // pas de topic
+    // 331 RPL_NOTOPIC
+}
 // void cmdPing(Server &serv, Client &client, const Message &message)
 // {
 
@@ -175,5 +194,5 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 // }
 // void cmdNotice(Server &serv, Client &client, const Message &message)
 // {
-    
+
 // }

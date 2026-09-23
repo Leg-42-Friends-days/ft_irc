@@ -239,6 +239,15 @@ void	Server::printChannels( void )
 	}
 }
 
+int	Server::isChannel( std::string channelName)
+{
+	std::map<std::string, Channel>::iterator	it;
+	it = this->_lobby.find(channelName);
+	if(it == this->_lobby.end())
+		return 0;
+	return 1;
+}
+
 void	Server::deleteFromAllTheChannels( Client *client)
 {
 	(void)client;
