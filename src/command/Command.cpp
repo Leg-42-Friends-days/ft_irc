@@ -121,6 +121,8 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 
 void cmdPass(Server &serv, Client &client, const Message &message)
 {
+    if (message.params.empty())
+        assembleResponse(client, ERR_PASSWDMISMATCH, "", "Wrong password");
     if (serv.getPassword() != message.params[0])
     {
         assembleResponse(client, ERR_PASSWDMISMATCH, message.params[0], "Wrong password");
@@ -133,7 +135,7 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 {
     if (message.params.empty())
     {
-        assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null Nickname isn't a parameter");
+        assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null username isn't a parameter");
         return;
     }
 
@@ -145,7 +147,7 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 
     if (checkClientUserName(message.params[0], serv))
     {
-        assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use");
+        assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
         return;
     }
     client.setUserName(message.params[0]);
