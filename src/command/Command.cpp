@@ -54,7 +54,7 @@ void dispatcher(Server &serv, Client &client, const Message &message)
         assembleResponse(client, ERR_NOTREGISTERED, "", "You have not registered");
         return ;
     }
-    
+
     if(message.params.size() < found->minParams)
     {
         assembleResponse(client, ERR_NEEDMOREPARAMS, verb, "Not enough parameters");
@@ -65,8 +65,7 @@ void dispatcher(Server &serv, Client &client, const Message &message)
     found->ft(serv, client, message);
 }
 
-// static en attendant de savoi où la mettre
-static std::string upperCase(std::string buffer)
+std::string upperCase(std::string buffer)
 {
 	for (size_t i = 0; i < buffer.length(); i++)
 		buffer[i] = toupper(static_cast<unsigned char>(buffer[i]));
@@ -78,7 +77,7 @@ std::string nickOrStar(const Client &client)
     if (client.getNickName().empty())
         return "*";
     return client.getNickName();
-}    
+}
 
 void sendResponse(const Client &client, std::string line)
 {
@@ -94,9 +93,46 @@ void assembleResponse(const Client &client, const char * code, const std::string
     if(!param.empty())
         line <<  " " << param;
     if(!text.empty())
-        line <<  " :" << text;       
+        line <<  " :" << text;
     sendResponse(client, line.str());
 }
+
+// void nickCommand(std::string &buffer, std::map<int, Client*>::iterator it)
+// {
+// 	std::string cut = cutLine(buffer, 4);
+// 	cut = removeDoubleDot(cut);
+// 	// 	// if (cut.empty())
+// 	// 	// {
+// 	// 	//	insert error no prompt NICK
+// 	// 	// }
+// 	it->second->setNickName(cut);
+// 	std::cout << "nickname set to " << cut << "\n";
+// }
+
+// void userCommand(std::string &buffer, std::map<int, Client*>::iterator it)
+// {
+// 	std::string cut = cutLine(buffer, 4);
+// 	cut = removeDoubleDot(cut);
+// 	// if (cut.empty())
+// 	// {
+// 	//	insert error no prompt USER
+// 	// }
+// 	it->second->setUserName(cut);
+// 	std::cout << "username set to " << cut << "\n";
+// }
+
+// void passwordCommand(std::string &buffer, std::map<int, Client*>::iterator it)
+// {
+// 		std::string cut = cutLine(buffer, 3);
+// 		// if (_password == cut)
+// 		// {
+// 			std::cout << "Valid password\n";
+// 			it->second->validatePassword();
+// 		// }
+// 		// else
+// 			// std::cout << "Invalid password\n";
+// 			//what
+// }
 
 void cmdNick(Server &serv, Client &client, const Message &message)
 {
@@ -148,5 +184,5 @@ void cmdList(Server &serv, Client &client, const Message &message)
 }
 void cmdNotice(Server &serv, Client &client, const Message &message)
 {
-    
+
 }

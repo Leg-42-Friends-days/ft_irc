@@ -22,7 +22,7 @@ class Client
 		Client(int fd, const std::string &host);
 
 		// Getters
-		int	getFdClient(void) const; // mettre une reference sur un int coute plus chere qu'une copie
+		int	getFdClient(void) const;
 		const std::string &getNickName(void) const;
 		const std::string &getUserName(void) const;
 		const std::string &getHostName(void) const;

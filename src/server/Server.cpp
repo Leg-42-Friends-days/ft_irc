@@ -1,6 +1,7 @@
 #include "../../includes/Server.hpp"
 #include "../../includes/Client.hpp"
 #include "../../includes/Channel.hpp"
+#include "../../includes/Command.hpp"
 
 // Constructeur
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
@@ -38,11 +39,8 @@ void	Server::initServ( void )
 	if (this->_servfd == -1)
 		throw ErrorListenFonction();
 
-
 	if (bind(this->_servfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 		throw std::runtime_error("bind() failed on port " + this->_portIP);
-		// ex version : throw ErrorBindFonction();
-		// on peut opter pour un run_time error avec le port qui a fail, plus propre
 
 	if (listen(this->_servfd, SOMAXCONN) == -1)
 		throw ErrorListenFonction();
@@ -128,7 +126,7 @@ std::string cutLine(std::string &buffer, int len)
 		else
 			space++;
 	}
-	
+
 	return (buffer.substr(len + space));
 }
 
@@ -159,43 +157,6 @@ std::string removeDoubleDot(std::string &buffer)
 	return (line);
 }
 
-void nickCommand(std::string &buffer, std::map<int, Client*>::iterator it)
-{
-	std::string cut = cutLine(buffer, 4);
-	cut = removeDoubleDot(cut);
-	// 	// if (cut.empty())
-	// 	// {
-	// 	//	insert error no prompt NICK
-	// 	// }
-	it->second->setNickName(cut);
-	std::cout << "nickname set to " << cut << "\n";
-}
-
-void userCommand(std::string &buffer, std::map<int, Client*>::iterator it)
-{
-	std::string cut = cutLine(buffer, 4);
-	cut = removeDoubleDot(cut);
-	// if (cut.empty())
-	// {
-	//	insert error no prompt USER
-	// }
-	it->second->setUserName(cut);
-	std::cout << "username set to " << cut << "\n";
-}
-
-void passwordCommand(std::string &buffer, std::map<int, Client*>::iterator it)
-{
-		std::string cut = cutLine(buffer, 3);
-		// if (_password == cut)
-		// {
-			std::cout << "Valid password\n";
-			it->second->validatePassword();
-		// }
-		// else
-			// std::cout << "Invalid password\n";
-			//what
-}
-
 void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 {
 	std::string line = trim(buffer);
@@ -224,7 +185,7 @@ void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator i
 	// else if (upperCase(line).compare(0, 7, "PRIVMSG") == 0)
 	// {
 		// std::string cut = cutLine(line, 7);
-	// 	//insert PRIVMSG fonction		
+	// 	//insert PRIVMSG fonction
 	// }
 	// else if (upperCase(line).compare(0, 5, "TOPIC") == 0)
 	// {
