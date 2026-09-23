@@ -2,25 +2,25 @@
 #include "Client.hpp"
 #include "Replies.hpp"
 #include "Server.hpp"
+#include "Parser.hpp"
 
 static const CmdInfo cmdInfo[] = {
     {"NICK", cmdNick, 0, false}, // 431 gere par handler
-    {"PASS", cmdPass, 1, false},
-    {"USER", cmdUser, 4, false},
-    {"TOPIC", cmdTopic, 1, true},
-    {"PING", cmdPing, 0, false}, // 409 gere par handler
-    {"INVITE", cmdInvite, 2, true},
-    {"JOIN", cmdJoin, 1, true},
-    {"KICK", cmdKick, 2, true},
-    {"QUIT", cmdQuit, 0, false}, // parametres optionnels
-    {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
-    {"MODE", cmdMode, 1, true},
-    // commande bonus
-    {"LIST", cmdList, 0, true}, // aucun parametre obligatoire
-    {"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
+    // {"PASS", cmdPass, 1, false},
+    // {"USER", cmdUser, 4, false},
+    // {"TOPIC", cmdTopic, 1, true},
+    // {"PING", cmdPing, 0, false}, // 409 gere par handler
+    // {"INVITE", cmdInvite, 2, true},
+    // {"JOIN", cmdJoin, 1, true},
+    // {"KICK", cmdKick, 2, true},
+    // {"QUIT", cmdQuit, 0, false}, // parametres optionnels
+    // {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
+    // {"MODE", cmdMode, 1, true},
+    // // commande bonus
+    // {"LIST", cmdList, 0, true}, // aucun parametre obligatoire
+    // {"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
 };
 
-static std::string upperCase(std::string buffer);
 std::string nickOrStar(const Client &client);
 void sendResponse(const Client &client, std::string line);
 void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text);
@@ -87,53 +87,56 @@ void assembleResponse(const Client &client, const char * code, const std::string
 
 void cmdNick(Server &serv, Client &client, const Message &message)
 {
-
+    (void) serv;
+    (void) client;
+    (void) message;
+    return;
 }
-void cmdPass(Server &serv, Client &client, const Message &message)
-{
+// void cmdPass(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdUser(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdUser(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdTopic(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdTopic(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdPing(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdPing(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdInvite(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdInvite(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdJoin(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdJoin(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdKick(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdKick(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdQuit(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdQuit(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdPrivMsg(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdPrivMsg(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdMode(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdMode(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdList(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdList(Server &serv, Client &client, const Message &message)
+// {
 
-}
-void cmdNotice(Server &serv, Client &client, const Message &message)
-{
+// }
+// void cmdNotice(Server &serv, Client &client, const Message &message)
+// {
     
-}
+// }

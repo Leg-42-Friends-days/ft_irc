@@ -3,6 +3,7 @@
 #include "../../includes/Channel.hpp"
 #include "../../includes/Message.hpp"
 #include "../../includes/Parser.hpp"
+#include "../../includes/Command.hpp"
 
 // Constructeur
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
@@ -137,7 +138,7 @@ void passwordCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 			//what
 }
 
-void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator it)
+void Server::callCommand(std::string &buffer, Client* client)
 {
 	std::string line = trim(buffer);
 
@@ -158,14 +159,7 @@ void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator i
 		std::cout << content << "\n";
 	}
 
-	std::string contentCmd[3] = {"NICK", "USER", "PWD"};
-	void (*cmd[3])(std::string &buffer, std::map<int, Client*>::iterator it) = {nickCommand, userCommand};
-
-	for (int i = 0; i < 3; i++)
-	{
-		if (upperCase(msg.cmd) == contentCmd[i])
-			cmd[i](line, it);
-	}
+	dispatcher(*this, *client, msg);
 	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
 	// {
 		// std::string cut = cutLine(line, 4);
@@ -219,7 +213,7 @@ void	Server::receiveMess( struct pollfd &pollFd)
 		buffer[message] = '\0';
 
 		std::string inputBuffer = buffer;
-		callCommand(inputBuffer, it);
+		callCommand(inputBuffer, it->second);
 		std::cout << "BUFFER > " << buffer;
 		if (it->second->getNickName().empty())
 			std::cout << "Client " << it->second->getFdClient() << "\n";

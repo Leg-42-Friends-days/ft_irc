@@ -64,29 +64,9 @@ std::string upperCase(std::string buffer)
 	return (buffer);
 }
 
-
 std::string nickOrStar(const Client &client)
 {
     if (client.getNickName().empty())
         return "*";
     return client.getNickName();
-}    
-
-void sendResponse(const Client &client, std::string line)
-{
-    line = line + "\r\n";
-    send(client.getFdClient(), line.c_str(), line.size(), 0);
 }
-
-
-void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
-{
-    std::ostringstream line;
-    line << ':' << SERVER_NAME << " " << code << " " << nickOrStar(client);
-    if(!param.empty())
-        line <<  " " << param;
-    if(!text.empty())
-        line <<  " :" << text;       
-    sendResponse(client, line.str());
-}
-
