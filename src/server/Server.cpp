@@ -95,67 +95,6 @@ void	Server::addChannel( std::string channelName )
 	this->_lobby.insert(std::pair<std::string, Channel>(channelName, *newChannel));
 }
 
-std::string trim(std::string &buffer)
-{
-	const std::string wspace = " \t\r\n";
-
-	size_t first = buffer.find_first_not_of(wspace);
-
-	if (first == std::string::npos)
-		return "";
-
-	size_t last = buffer.find_last_not_of(wspace);
-
-	return (buffer.substr(first, (last - first + 1)));
-}
-
-std::string upperCase(std::string buffer)
-{
-	for (size_t i = 0; i < buffer.length(); i++)
-		buffer[i] = toupper(buffer[i]);
-	return (buffer);
-}
-
-std::string cutLine(std::string &buffer, int len)
-{
-	int space = 0;
-	for (size_t i = len; i < buffer.length(); i++)
-	{
-		if (!(std::isspace(buffer[i])))
-			break;
-		else
-			space++;
-	}
-
-	return (buffer.substr(len + space));
-}
-
-std::string checkPrefix(std::string &buffer)
-{
-	if (buffer[0] == ':')
-	{
-		for (size_t i = 0; i < buffer.length(); i++)
-		{
-			if (std::isspace(buffer[i]))
-			{
-				std::string line = buffer.substr(i);
-				line = trim(line);
-				return (line);
-			}
-		}
-	}
-	return buffer;
-}
-
-std::string removeDoubleDot(std::string &buffer)
-{
-	int i = 0;
-	if (buffer[0] == ':')
-		i++;
-	std::string line = buffer.substr(i);
-	line = trim(line);
-	return (line);
-}
 
 void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 {
@@ -165,16 +104,25 @@ void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator i
 		line = checkPrefix(line);
 	std::stringstream stream(line);
 
-	std::string first;
+	Message msg;
+	std::string content;
 
-	stream >> first;
+	stream >> msg.cmd;
+
+	std::cout << msg.cmd << "\n";
+
+	while (stream >> content)
+	{
+		msg.params.push_back(content);
+		std::cout << content << "\n";
+	}
 
 	std::string contentCmd[3] = {"NICK", "USER", "PWD"};
 	void (*cmd[3])(std::string &buffer, std::map<int, Client*>::iterator it) = {nickCommand, userCommand};
 
 	for (int i = 0; i < 3; i++)
 	{
-		if (upperCase(first) == contentCmd[i])
+		if (upperCase(msg.cmd) == contentCmd[i])
 			cmd[i](line, it);
 	}
 	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
@@ -219,7 +167,6 @@ void	Server::receiveMess( struct pollfd &pollFd)
 		return;
 	if (message <= 0)
 	{
-		std::cout << "Client " << pollFd.fd << " Disconnected" << std::endl;
 		if (it->second->getNickName().empty())
 			std::cout << "Client " << it->first << " Disconnected" << "\n";
 		else
