@@ -26,6 +26,10 @@ std::vector<struct pollfd> &Server::getpollFds( void )
 	return (this->_pollFds);
 }
 
+std::map<int, Client*> &Server::getClientRepo( void )
+{
+	return (this->_clientRepertory);
+}
 
 void	Server::initServ( void )
 {

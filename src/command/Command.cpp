@@ -122,17 +122,58 @@ void assembleResponse(const Client &client, const char * code, const std::string
 // 			//what
 // }
 
+
+bool checkFormat(const std::string &msg)
+{
+    for (size_t i = 0; i < msg.length(); i++)
+    {
+        if (std::ispunct(msg[i]))
+            return (true);
+    }
+    return (false);
+}
+
+bool checkClientExist(const std::string &msg, Server &serv)
+{
+    std::map<int, Client*> copy = serv.getClientRepo();
+
+    for (std::map<int, Client*>::const_iterator it = copy.begin(); it != copy.end(); it++)
+    {
+        if (it->second->getNickName() == msg)
+            return (true);
+    }
+    return (false);
+}
+
 void cmdNick(Server &serv, Client &client, const Message &message)
 {
-    (void) serv;
-    (void) client;
-    (void) message;
+    if (message.params.empty())
+    {
+        assembleResponse(client, ERR_NONICKNAMEGIVEN, message.params[0], "Null Nickname isn't a parameter");
+        return;
+    }
+
+    if (checkFormat(message.params[0]))
+    {
+        assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[], "Special caracter is forbidden");
+        return;
+    }
+
+    if (checkClientExist(message.params[0], serv))
+    {
+        assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use");
+        return;
+    }
+
+    client.setNickName(message.params[0]);
+	std::cout << "nickname set to " << message.params[0] << "\n";
     return;
 }
 // void cmdPass(Server &serv, Client &client, const Message &message)
 // {
 
 // }
+
 // void cmdUser(Server &serv, Client &client, const Message &message)
 // {
 
