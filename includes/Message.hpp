@@ -2,8 +2,7 @@
 
 #include "Includes.hpp"
 
-struct Message
-{
-    std::string cmd;
-    std::vector<std::string> params;
+struct Message {
+     std::string cmd;
+     std::vector<std::string> params;
 };
