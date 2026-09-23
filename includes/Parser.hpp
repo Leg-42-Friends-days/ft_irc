@@ -10,3 +10,5 @@ std::string cutLine(std::string &buffer, int len);
 std::string checkPrefix(std::string &buffer);
 std::string upperCase(std::string buffer);
 std::string nickOrStar(const Client &client);
+bool checkClientNickName(const std::string &msg, Server &serv);
+bool checkClientUserName(const std::string &msg, Server &serv);

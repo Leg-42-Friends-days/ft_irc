@@ -1,6 +1,7 @@
 #include "../includes/Includes.hpp"
 #include "../includes/Client.hpp"
 #include "../includes/Replies.hpp"
+#include "../includes/Server.hpp"
 
 std::string trim(std::string &buffer)
 {
@@ -69,4 +70,28 @@ std::string nickOrStar(const Client &client)
     if (client.getNickName().empty())
         return "*";
     return client.getNickName();
+}
+
+bool checkClientNickName(const std::string &msg, Server &serv)
+{
+    std::map<int, Client*> copy = serv.getClientRepo();
+
+    for (std::map<int, Client*>::const_iterator it = copy.begin(); it != copy.end(); it++)
+    {
+        if (it->second->getNickName() == msg)
+            return (true);
+    }
+    return (false);
+}
+
+bool checkClientUserName(const std::string &msg, Server &serv)
+{
+    std::map<int, Client*> copy = serv.getClientRepo();
+
+    for (std::map<int, Client*>::const_iterator it = copy.begin(); it != copy.end(); it++)
+    {
+        if (it->second->getUserName() == msg)
+            return (true);
+    }
+    return (false);
 }

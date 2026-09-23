@@ -31,6 +31,11 @@ std::map<int, Client*> &Server::getClientRepo( void )
 	return (this->_clientRepertory);
 }
 
+std::string &Server::getPassword( void )
+{
+	return (this->_password);
+}
+
 void	Server::initServ( void )
 {
 	addrinfo	hint;
@@ -101,44 +106,6 @@ void	Server::addChannel( std::string channelName )
 	this->_lobby.insert(std::pair<std::string, Channel>(channelName, *newChannel));
 }
 
-
-void nickCommand(std::string &buffer, std::map<int, Client*>::iterator it)
-{
-	std::string cut = cutLine(buffer, 4);
-	cut = removeDoubleDot(cut);
-	// 	// if (cut.empty())
-	// 	// {
-	// 	//	insert error no prompt NICK
-	// 	// }
-	it->second->setNickName(cut);
-	std::cout << "nickname set to " << cut << "\n";
-}
-
-void userCommand(std::string &buffer, std::map<int, Client*>::iterator it)
-{
-	std::string cut = cutLine(buffer, 4);
-	cut = removeDoubleDot(cut);
-	// if (cut.empty())
-	// {
-	//	insert error no prompt USER
-	// }
-	it->second->setUserName(cut);
-	std::cout << "username set to " << cut << "\n";
-}
-
-void passwordCommand(std::string &buffer, std::map<int, Client*>::iterator it)
-{
-		std::string cut = cutLine(buffer, 3);
-		// if (_password == cut)
-		// {
-			std::cout << "Valid password\n";
-			it->second->validatePassword();
-		// }
-		// else
-			// std::cout << "Invalid password\n";
-			//what
-}
-
 void Server::callCommand(std::string &buffer, Client* client)
 {
 	std::string line = trim(buffer);
@@ -152,13 +119,8 @@ void Server::callCommand(std::string &buffer, Client* client)
 
 	stream >> msg.cmd;
 
-	std::cout << msg.cmd << "\n";
-
 	while (stream >> content)
-	{
 		msg.params.push_back(content);
-		std::cout << content << "\n";
-	}
 
 	dispatcher(*this, *client, msg);
 	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
