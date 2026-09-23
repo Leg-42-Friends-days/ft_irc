@@ -1,6 +1,8 @@
 #include "../../includes/Server.hpp"
 #include "../../includes/Client.hpp"
 #include "../../includes/Channel.hpp"
+#include "../../includes/Message.hpp"
+#include "../../includes/Parser.hpp"
 #include "../../includes/Command.hpp"
 
 // Constructeur
@@ -96,7 +98,44 @@ void	Server::addChannel( std::string channelName )
 }
 
 
-void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator it)
+void nickCommand(std::string &buffer, std::map<int, Client*>::iterator it)
+{
+	std::string cut = cutLine(buffer, 4);
+	cut = removeDoubleDot(cut);
+	// 	// if (cut.empty())
+	// 	// {
+	// 	//	insert error no prompt NICK
+	// 	// }
+	it->second->setNickName(cut);
+	std::cout << "nickname set to " << cut << "\n";
+}
+
+void userCommand(std::string &buffer, std::map<int, Client*>::iterator it)
+{
+	std::string cut = cutLine(buffer, 4);
+	cut = removeDoubleDot(cut);
+	// if (cut.empty())
+	// {
+	//	insert error no prompt USER
+	// }
+	it->second->setUserName(cut);
+	std::cout << "username set to " << cut << "\n";
+}
+
+void passwordCommand(std::string &buffer, std::map<int, Client*>::iterator it)
+{
+		std::string cut = cutLine(buffer, 3);
+		// if (_password == cut)
+		// {
+			std::cout << "Valid password\n";
+			it->second->validatePassword();
+		// }
+		// else
+			// std::cout << "Invalid password\n";
+			//what
+}
+
+void Server::callCommand(std::string &buffer, Client* client)
 {
 	std::string line = trim(buffer);
 
@@ -117,14 +156,7 @@ void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator i
 		std::cout << content << "\n";
 	}
 
-	std::string contentCmd[3] = {"NICK", "USER", "PWD"};
-	void (*cmd[3])(std::string &buffer, std::map<int, Client*>::iterator it) = {nickCommand, userCommand};
-
-	for (int i = 0; i < 3; i++)
-	{
-		if (upperCase(msg.cmd) == contentCmd[i])
-			cmd[i](line, it);
-	}
+	dispatcher(*this, *client, msg);
 	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
 	// {
 		// std::string cut = cutLine(line, 4);
@@ -178,7 +210,7 @@ void	Server::receiveMess( struct pollfd &pollFd)
 		buffer[message] = '\0';
 
 		std::string inputBuffer = buffer;
-		callCommand(inputBuffer, it);
+		callCommand(inputBuffer, it->second);
 		std::cout << "BUFFER > " << buffer;
 		if (it->second->getNickName().empty())
 			std::cout << "Client " << it->second->getFdClient() << "\n";
