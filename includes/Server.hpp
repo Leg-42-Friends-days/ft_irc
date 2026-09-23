@@ -20,6 +20,8 @@ class Server
 		const std::string	&getPortIP( void );
 		const int	&getServFd( void );
 		std::vector<struct pollfd> &getpollFds( void );
+		std::map<int, Client*> &getClientRepo( void );
+		std::string &getPassword( void );
 		void	initServ( void );
 		void	initPollFds( void );
 		void	addClient( void );
