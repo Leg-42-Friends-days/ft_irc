@@ -12,7 +12,7 @@ class Server
 		int								_servfd;
 		std::vector<struct pollfd>		_pollFds;
 		std::map<int, Client*>			_clientRepertory;
-		std::map<std::string, Channel>	_lobby;
+		std::map<std::string, Channel*>	_lobby;
 		Server(void);
 
 	public:
@@ -23,6 +23,7 @@ class Server
 		void	initServ( void );
 		void	initPollFds( void );
 		void	addClient( void );
+		void	deleteClient(Client *client);
 		void	addChannel( std::string channelName );
 		void	receiveMess(struct pollfd &pollFd);
 		void	callCommand(std::string &buffer, std::map<int, Client*>::iterator it);

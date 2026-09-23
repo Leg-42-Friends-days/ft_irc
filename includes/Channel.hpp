@@ -19,6 +19,7 @@ class Channel
 		Channel( void );
 	public:
 		Channel(std::string channelName);
+		bool	isEmpty( void );
 		// members
 		bool	addMember( Client *client);
 		void	removeMember( Client *client);
