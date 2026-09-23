@@ -41,11 +41,8 @@ void	Server::initServ( void )
 	if (this->_servfd == -1)
 		throw ErrorListenFonction();
 
-
 	if (bind(this->_servfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 		throw std::runtime_error("bind() failed on port " + this->_portIP);
-		// ex version : throw ErrorBindFonction();
-		// on peut opter pour un run_time error avec le port qui a fail, plus propre
 
 	if (listen(this->_servfd, SOMAXCONN) == -1)
 		throw ErrorListenFonction();
@@ -168,7 +165,7 @@ void Server::callCommand(std::string &buffer, Client* client)
 	// else if (upperCase(line).compare(0, 7, "PRIVMSG") == 0)
 	// {
 		// std::string cut = cutLine(line, 7);
-	// 	//insert PRIVMSG fonction		
+	// 	//insert PRIVMSG fonction
 	// }
 	// else if (upperCase(line).compare(0, 5, "TOPIC") == 0)
 	// {
