@@ -1,6 +1,9 @@
 #include "../../includes/Server.hpp"
 #include "../../includes/Client.hpp"
 #include "../../includes/Channel.hpp"
+#include "../../includes/Message.hpp"
+#include "../../includes/Parser.hpp"
+#include "../../includes/Command.hpp"
 
 // Constructeur
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
@@ -39,11 +42,8 @@ void	Server::initServ( void )
 	if (this->_servfd == -1)
 		throw ErrorListenFonction();
 
-
 	if (bind(this->_servfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 		throw std::runtime_error("bind() failed on port " + this->_portIP);
-		// ex version : throw ErrorBindFonction();
-		// on peut opter pour un run_time error avec le port qui a fail, plus propre
 
 	if (listen(this->_servfd, SOMAXCONN) == -1)
 		throw ErrorListenFonction();
@@ -143,67 +143,6 @@ void	Server::addChannel( std::string channelName )
 	this->_lobby.insert(std::pair<std::string, Channel*>(channelName, newChannel));
 }
 
-std::string trim(std::string &buffer)
-{
-	const std::string wspace = " \t\r\n";
-
-	size_t first = buffer.find_first_not_of(wspace);
-
-	if (first == std::string::npos)
-		return "";
-
-	size_t last = buffer.find_last_not_of(wspace);
-
-	return (buffer.substr(first, (last - first + 1)));
-}
-
-std::string upperCase(std::string buffer)
-{
-	for (size_t i = 0; i < buffer.length(); i++)
-		buffer[i] = toupper(buffer[i]);
-	return (buffer);
-}
-
-std::string cutLine(std::string &buffer, int len)
-{
-	int space = 0;
-	for (size_t i = len; i < buffer.length(); i++)
-	{
-		if (!(std::isspace(buffer[i])))
-			break;
-		else
-			space++;
-	}
-	
-	return (buffer.substr(len + space));
-}
-
-std::string checkPrefix(std::string &buffer)
-{
-	if (buffer[0] == ':')
-	{
-		for (size_t i = 0; i < buffer.length(); i++)
-		{
-			if (std::isspace(buffer[i]))
-			{
-				std::string line = buffer.substr(i);
-				line = trim(line);
-				return (line);
-			}
-		}
-	}
-	return buffer;
-}
-
-std::string removeDoubleDot(std::string &buffer)
-{
-	int i = 0;
-	if (buffer[0] == ':')
-		i++;
-	std::string line = buffer.substr(i);
-	line = trim(line);
-	return (line);
-}
 
 void nickCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 {
@@ -242,7 +181,7 @@ void passwordCommand(std::string &buffer, std::map<int, Client*>::iterator it)
 			//what
 }
 
-void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator it)
+void Server::callCommand(std::string &buffer, Client* client)
 {
 	std::string line = trim(buffer);
 
@@ -250,18 +189,20 @@ void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator i
 		line = checkPrefix(line);
 	std::stringstream stream(line);
 
-	std::string first;
+	Message msg;
+	std::string content;
 
-	stream >> first;
+	stream >> msg.cmd;
 
-	std::string contentCmd[3] = {"NICK", "USER", "PWD"};
-	void (*cmd[3])(std::string &buffer, std::map<int, Client*>::iterator it) = {nickCommand, userCommand};
+	std::cout << msg.cmd << "\n";
 
-	for (int i = 0; i < 3; i++)
+	while (stream >> content)
 	{
-		if (upperCase(first) == contentCmd[i])
-			cmd[i](line, it);
+		msg.params.push_back(content);
+		std::cout << content << "\n";
 	}
+
+	dispatcher(*this, *client, msg);
 	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
 	// {
 		// std::string cut = cutLine(line, 4);
@@ -270,7 +211,7 @@ void Server::callCommand(std::string &buffer, std::map<int, Client*>::iterator i
 	// else if (upperCase(line).compare(0, 7, "PRIVMSG") == 0)
 	// {
 		// std::string cut = cutLine(line, 7);
-	// 	//insert PRIVMSG fonction		
+	// 	//insert PRIVMSG fonction
 	// }
 	// else if (upperCase(line).compare(0, 5, "TOPIC") == 0)
 	// {
@@ -311,7 +252,7 @@ void	Server::receiveMess( struct pollfd &pollFd)
 		buffer[message] = '\0';
 
 		std::string inputBuffer = buffer;
-		callCommand(inputBuffer, it);
+		callCommand(inputBuffer, it->second);
 		std::cout << "BUFFER > " << buffer;
 		if (it->second->getNickName().empty())
 			std::cout << "Client " << it->second->getFdClient() << "\n";
