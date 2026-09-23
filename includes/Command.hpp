@@ -18,7 +18,9 @@ struct CmdInfo {
 
 typedef void (*handler_t)(Server &serv, Client &client, const Message &message);
 
-void dispatcher(Server &serv, Client &client, const Message &message);
+void    dispatcher(Server &serv, Client &client, const Message &message);
+void    sendResponse(const Client &client, std::string line);
+void    assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text);
 
 void cmdNick(Server &serv, Client &client, const Message &message);
 // void cmdPass(Server &serv, Client &client, const Message &message);

@@ -12,7 +12,7 @@ class Server
 		int								_servfd;
 		std::vector<struct pollfd>		_pollFds;
 		std::map<int, Client*>			_clientRepertory;
-		std::map<std::string, Channel>	_lobby;
+		std::map<std::string, Channel*>	_lobby;
 		Server(void);
 
 	public:
@@ -23,13 +23,16 @@ class Server
 		void	initServ( void );
 		void	initPollFds( void );
 		void	addClient( void );
+		void	deleteClient(Client *client);
 		void	addChannel( std::string channelName );
 		void	receiveMess(struct pollfd &pollFd);
 		void	callCommand(std::string &buffer, Client* client);
 		//Channel
 		void	printChannels( void );
 		int		isChannel( std::string channelName);
+		Channel &searchChannel(std::string channelName);
 		void	deleteFromAllTheChannels( Client *client);
+
 
 		//exceptions
 		class ErrorBindFonction : public std::exception

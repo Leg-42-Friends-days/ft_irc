@@ -7,6 +7,14 @@ Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _invit
 	this->_channelName = channelName;
 }
 
+bool	Channel::isEmpty( void )
+{
+	if (this->_members.empty())
+		return (1);
+	else
+		return (0);
+}
+
 bool	Channel::addMember( Client *client)
 {
 	if (this->_nbMaxOfClients != 0)

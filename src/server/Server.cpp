@@ -38,6 +38,7 @@ void	Server::initServ( void )
 	(void)status;
 
 	this->_servfd = socket(AF_INET, SOCK_STREAM, 0);
+	fcntl(this->_servfd, F_SETFL, O_NONBLOCK);
 	if (this->_servfd == -1)
 		throw ErrorListenFonction();
 
@@ -91,10 +92,57 @@ void	Server::addClient( void )
 	std::cout << it_general->second.isAMember(newClient) << std::endl; */
 }
 
+void	Server::deleteClient(Client *client)
+{
+	this->deleteFromAllTheChannels(client);
+	std::vector<struct pollfd>::iterator	it;
+	it = this->_pollFds.begin();
+	while (it != this->_pollFds.end())
+	{
+		if (it->fd == client->getFdClient())
+		{
+			this->_pollFds.erase(it);
+			break;
+		}
+		it++;
+	}
+	close(client->getFdClient());
+	if (client->getNickName().empty())
+		std::cout << "Client " << client->getFdClient() << " Disconnected" << "\n";
+	else
+		std::cout << "Client " << client->getNickName() << " Disconnected" << "\n";
+	std::map<int, Client*>::iterator	it_client;
+	it_client = this->_clientRepertory.find(client->getFdClient());
+	if (it_client == this->_clientRepertory.end())
+		return ;
+	else
+		this->_clientRepertory.erase(it_client);
+	delete(it_client->second);
+}
+
+void	Server::deleteFromAllTheChannels( Client *client)
+{
+	std::map<std::string, Channel*>::iterator	it;
+	it = this->_lobby.begin();
+	while (it != this->_lobby.end())
+	{
+		if (it->second->isAMember(client))
+		{
+			it->second->removeMember(client);
+			if (it->second->isEmpty())
+			{
+				this->_lobby.erase(it);
+				delete(it->second);
+			}
+		}
+		it ++;
+	}
+}
+
 void	Server::addChannel( std::string channelName )
 {
 	Channel	*newChannel = new Channel(channelName);
-	this->_lobby.insert(std::pair<std::string, Channel>(channelName, *newChannel));
+	this->_lobby.insert(std::pair<std::string, Channel*>(channelName, newChannel));
 }
 
 
@@ -199,11 +247,7 @@ void	Server::receiveMess( struct pollfd &pollFd)
 		return;
 	if (message <= 0)
 	{
-		if (it->second->getNickName().empty())
-			std::cout << "Client " << it->first << " Disconnected" << "\n";
-		else
-			std::cout << "Client " << it->second->getNickName() << " Disconnected" << "\n";
-		close(pollFd.fd);
+		this->deleteClient(it->second);
 	}
 	else
 	{
@@ -228,8 +272,8 @@ void	Server::receiveMess( struct pollfd &pollFd)
 
 void	Server::printChannels( void )
 {
-	std::map<std::string, Channel>::iterator	it;
-	std::map<std::string, Channel>::iterator	it_end;
+	std::map<std::string, Channel*>::iterator	it;
+	std::map<std::string, Channel*>::iterator	it_end;
 	it = this->_lobby.begin();
 	it_end = this->_lobby.end();
 	while(it != it_end)
@@ -239,21 +283,21 @@ void	Server::printChannels( void )
 	}
 }
 
-int	Server::isChannel( std::string channelName)
+int		Server::isChannel( std::string channelName)
 {
-	std::map<std::string, Channel>::iterator	it;
+	std::map<std::string, Channel*>::iterator	it;
 	it = this->_lobby.find(channelName);
 	if(it == this->_lobby.end())
 		return 0;
 	return 1;
 }
 
-void	Server::deleteFromAllTheChannels( Client *client)
+Channel & Server::searchChannel(std::string channelName)
 {
-	(void)client;
-	// parcourir tous les channels, regarder si il est dedans, si il est dedans utiliser delete from the channel
+	std::map<std::string, Channel*>::iterator	it;
+	it = this->_lobby.find(channelName);
+	return *it->second;
 }
-
 
 // Execption
 

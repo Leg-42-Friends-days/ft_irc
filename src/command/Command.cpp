@@ -11,7 +11,7 @@ static const CmdInfo cmdInfo[] = {
     {"TOPIC", cmdTopic, 1, true},
     // {"PING", cmdPing, 0, false}, // 409 gere par handler
     // {"INVITE", cmdInvite, 2, true},
-    // {"JOIN", cmdJoin, 1, true},
+    {"JOIN", cmdJoin, 1, true},
     // {"KICK", cmdKick, 2, true},
     // {"QUIT", cmdQuit, 0, false}, // parametres optionnels
     // {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
@@ -142,23 +142,21 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 {
 
     if(!serv.isChannel(message.params[0]))
-        assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[0], "No such channel");
+        assembleResponse(client, ERR_NOSUCHCHANNEL, message.cmd, "No such channel");
 
-    if()
-    // Channel existe mais je suis pas dedans
-    // 442 ERR_NOTONCHANNEL
+    if(!serv.searchChannel(message.params[0]).isAMember(&client))
+        assembleResponse(client, ERR_NOTONCHANNEL, message.cmd, "You're not on that channel");
 
-    // Mode present operator only pour changer le topic
-    // ERR_CHANOPRIVSNEEDED
-
+    if(serv.searchChannel(message.params[0]).setTopic(message.params[1], &client))
+        assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "You're not channel operator");
+    else
+    {
+        std::ostringstream line;
+        line << ':' << nickOrStar(client) << " " << message.cmd << " " << message.params[0] << " :" << message.params[1];
+        sendResponse(client, line.str());
+    }
     // To be see
     // ERR_NOCHANMODES
-
-    // tout se passe bien
-    // RPL_TOPIC
-
-    // pas de topic
-    // 331 RPL_NOTOPIC
 }
 // void cmdPing(Server &serv, Client &client, const Message &message)
 // {
@@ -168,10 +166,30 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 // {
 
 // }
-// void cmdJoin(Server &serv, Client &client, const Message &message)
-// {
 
-// }
+void cmdJoin(Server &serv, Client &client, const Message &message)
+{
+    // ERR_BADCHANMASK
+    // pas de '#'
+
+    // Channe existe ou pas -> le creer si necessaire
+
+    // ERR_CHANNELISFULL
+    // ERR_INVITEONLYCHAN
+
+    // ERR_BADCHANNELKEY
+
+    // RPL_TOPIC
+
+    // pas de topic quqnd tu entres dans un salon
+    // 331 RPL_NOTOPIC
+
+    // afficher command dans client server
+
+
+    // ERR_TOOMANYTARGETS
+    // trop darguments ?
+}
 // void cmdKick(Server &serv, Client &client, const Message &message)
 // {
 

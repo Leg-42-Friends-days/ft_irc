@@ -50,4 +50,5 @@ const char * const 	ERR_CHANNELISFULL = "471"; // JOIN
 const char * const 	ERR_UNKNOWNMODE = "472"; // Erreur parametres MODE
 const char * const 	ERR_INVITEONLYCHAN = "473";
 const char * const 	ERR_BADCHANNELKEY = "475";
+const char * const 	ERR_BADCHANMASK = "476";
 const char * const 	ERR_CHANOPRIVSNEEDED = "482";
