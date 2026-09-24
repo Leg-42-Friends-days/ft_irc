@@ -27,7 +27,6 @@ int	Channel::addMember( Client *client)
 		if (!this->isInvited(client))
 			return (2);
 	}
-	std::cout << "Ajout du membre " << client->getFdClient() << " au serveur " << this->_channelName << std::endl;
 	this->_members.insert(std::pair<int, Client*>(client->getFdClient(), client));
 	return (0);
 }
