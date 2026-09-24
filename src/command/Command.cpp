@@ -6,8 +6,8 @@
 
 static const CmdInfo cmdInfo[] = {
     {"NICK", cmdNick, 0, false}, // 431 gere par handler
-    // {"PASS", cmdPass, 1, false},
-    // {"USER", cmdUser, 4, false},
+    {"PASS", cmdPass, 1, false},
+    {"USER", cmdUser, 4, false},
     {"TOPIC", cmdTopic, 1, true},
     // {"PING", cmdPing, 0, false}, // 409 gere par handler
     // {"INVITE", cmdInvite, 2, true},
@@ -85,58 +85,61 @@ void assembleResponse(const Client &client, const char * code, const std::string
     sendResponse(client, line.str());
 }
 
-// void nickCommand(std::string &buffer, std::map<int, Client*>::iterator it)
-// {
-// 	std::string cut = cutLine(buffer, 4);
-// 	cut = removeDoubleDot(cut);
-// 	// 	// if (cut.empty())
-// 	// 	// {
-// 	// 	//	insert error no prompt NICK
-// 	// 	// }
-// 	it->second->setNickName(cut);
-// 	std::cout << "nickname set to " << cut << "\n";
-// }
-
-// void userCommand(std::string &buffer, std::map<int, Client*>::iterator it)
-// {
-// 	std::string cut = cutLine(buffer, 4);
-// 	cut = removeDoubleDot(cut);
-// 	// if (cut.empty())
-// 	// {
-// 	//	insert error no prompt USER
-// 	// }
-// 	it->second->setUserName(cut);
-// 	std::cout << "username set to " << cut << "\n";
-// }
-
-// void passwordCommand(std::string &buffer, std::map<int, Client*>::iterator it)
-// {
-// 		std::string cut = cutLine(buffer, 3);
-// 		// if (_password == cut)
-// 		// {
-// 			std::cout << "Valid password\n";
-// 			it->second->validatePassword();
-// 		// }
-// 		// else
-// 			// std::cout << "Invalid password\n";
-// 			//what
-// }
+bool checkFormat(const std::string &msg)
+{
+    for (size_t i = 0; i < msg.length(); i++)
+    {
+        if (std::ispunct(msg[i]))
+            return (true);
+    }
+    return (false);
+}
 
 void cmdNick(Server &serv, Client &client, const Message &message)
 {
-    (void) serv;
-    (void) client;
-    (void) message;
-    return;
+    if (message.params.empty())
+    {
+        assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null Nickname isn't a parameter");
+        return;
+    }
+
+    if (checkFormat(message.params[0]))
+    {
+        assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
+        return;
+    }
+
+    if (checkClientNickName(message.params[0], serv))
+    {
+        assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use");
+        return;
+    }
+
+    client.setNickName(message.params[0]);
+	std::cout << "Nickname set to " << message.params[0] << "\n";
 }
-// void cmdPass(Server &serv, Client &client, const Message &message)
-// {
 
-// }
-// void cmdUser(Server &serv, Client &client, const Message &message)
-// {
+void cmdPass(Server &serv, Client &client, const Message &message)
+{
+    if (message.params.empty())
+        assembleResponse(client, ERR_PASSWDMISMATCH, "", "Wrong password");
+    if (serv.getPassword() != message.params[0])
+    {
+        assembleResponse(client, ERR_PASSWDMISMATCH, message.params[0], "Wrong password");
+        return;
+    }
+    client.validatePassword();    
+}
 
-// }
+void cmdUser(Server &serv, Client &client, const Message &message)
+{
+    if (message.params.empty())
+    {
+        assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null username isn't a parameter");
+        return;
+    }
+
+}
 
 void cmdTopic(Server &serv, Client &client, const Message &message)
 {
