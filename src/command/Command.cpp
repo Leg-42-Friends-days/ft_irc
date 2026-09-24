@@ -128,7 +128,7 @@ void cmdPass(Server &serv, Client &client, const Message &message)
         assembleResponse(client, ERR_PASSWDMISMATCH, message.params[0], "Wrong password");
         return;
     }
-    client.validatePassword();    
+    client.validatePassword();
 }
 
 void cmdUser(Server &serv, Client &client, const Message &message)
@@ -145,18 +145,26 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 {
 
     if(!serv.isChannel(message.params[0]))
+    {
         assembleResponse(client, ERR_NOSUCHCHANNEL, message.cmd, "No such channel");
-
+        return;
+    }
     if(!serv.searchChannel(message.params[0]).isAMember(&client))
+    {
         assembleResponse(client, ERR_NOTONCHANNEL, message.cmd, "You're not on that channel");
-
+        return;
+    }
     if(serv.searchChannel(message.params[0]).setTopic(message.params[1], &client))
+    {
         assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "You're not channel operator");
+        return;
+    }
     else
     {
         std::ostringstream line;
         line << ':' << nickOrStar(client) << " " << message.cmd << " " << message.params[0] << " :" << message.params[1];
         sendResponse(client, line.str());
+        return;
     }
     // To be see
     // ERR_NOCHANMODES
@@ -172,24 +180,44 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 
 void cmdJoin(Server &serv, Client &client, const Message &message)
 {
-    // ERR_BADCHANMASK
-    // pas de '#'
+    // Verifier qu'il y a un # devant le nom du channel demande
+    if(!strncmp(message.params[0].c_str(), "#", 1))
+    {
+        assembleResponse(client, ERR_BADCHANMASK, message.params[0], "Bad Channel Mask");
+        return;
+    }
+    // Verifier si le channel existe, sinon go le creer
+    if(!serv.isChannel(message.params[0]))
+        serv.addChannel(message.params[0]);
 
-    // Channe existe ou pas -> le creer si necessaire
+    // Verifier si le channel est en invite only
+        // ERR_INVITEONLYCHAN
+    // Verifier si un mot de passe est set
+        // ERR_BADCHANNELKEY
 
-    // ERR_CHANNELISFULL
-    // ERR_INVITEONLYCHAN
+    // verifier si le channel est full, sinon ajouter le membre
+    int result = serv.searchChannel(message.params[0]).addMember(&client);
+    if(result == 1)
+    {
+        assembleResponse(client, ERR_CHANNELISFULL, message.params[0], "Channel is full");
+        return;
+    }else if(result == 2)
+    {
+        assembleResponse(client, ERR_INVITEONLYCHAN, message.params[0], "Channel is set on invited only");
+        return;
+    }
+    else
+    {
+        // print aux operators que x a rejoint le channel ?
+    }
+    if(serv.searchChannel(message.params[0]).getTopic().c_str() == NULL)
+         assembleResponse(client, RPL_NOTOPIC, message.params[0], "No Topic is set");
+    else
+         assembleResponse(client, RPL_TOPIC, message.params[0], serv.searchChannel(message.params[0]).getTopic());
 
-    // ERR_BADCHANNELKEY
-
-    // RPL_TOPIC
-
-    // pas de topic quqnd tu entres dans un salon
-    // 331 RPL_NOTOPIC
-
+    // RPL_NAMREPLY
     // afficher command dans client server
-
-
+    // RPL_ENDOFNAMES
     // ERR_TOOMANYTARGETS
     // trop darguments ?
 }
