@@ -10,8 +10,8 @@ static const CmdInfo cmdInfo[] = {
     {"USER", cmdUser, 4, false},
     {"TOPIC", cmdTopic, 1, true},
     // {"PING", cmdPing, 0, false}, // 409 gere par handler
-    // {"INVITE", cmdInvite, 2, true},
-    {"JOIN", cmdJoin, 1, true},
+    //{"INVITE", cmdInvite, 2, true},
+    //{"JOIN", cmdJoin, 1, true},
     // {"KICK", cmdKick, 2, true},
     // {"QUIT", cmdQuit, 0, false}, // parametres optionnels
     // {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
@@ -133,6 +133,7 @@ void cmdPass(Server &serv, Client &client, const Message &message)
 
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
+    (void)serv;
     if (message.params.empty())
     {
         assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null username isn't a parameter");
@@ -173,10 +174,14 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 // {
 
 // }
-// void cmdInvite(Server &serv, Client &client, const Message &message)
-// {
+//void cmdInvite(Server &serv, Client &client, const Message &message)
+//{
+    
+    //ERR_NOSUCHNICK
+    //le mec n'existe pas
 
-// }
+    //ERR_NOTONCHANNEL
+    //l'inviteur n'appartient pas au channel
 
 void cmdJoin(Server &serv, Client &client, const Message &message)
 {
@@ -220,7 +225,7 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     // RPL_ENDOFNAMES
     // ERR_TOOMANYTARGETS
     // trop darguments ?
-}
+////}
 // void cmdKick(Server &serv, Client &client, const Message &message)
 // {
 

@@ -129,6 +129,29 @@ void	Server::deleteClient(Client *client)
 	delete(it_client->second);
 }
 
+std::map<int, Client*>::iterator	Server::findClientByNickname( std::string nickname)
+{
+	std::map<int, Client*>::iterator	it;
+	it = this->_clientRepertory.begin();
+	while (it != this->_clientRepertory.end())
+	{
+		if (it->second->getNickName() == nickname)
+			return (it);
+		it++;
+	}
+	return (this->_clientRepertory.end());
+}
+
+bool	Server::isAClient(std::string nickname)
+{
+	std::map<int, Client*>::iterator	it;
+	it = this->findClientByNickname(nickname);
+	if (it == this->_clientRepertory.end())
+		return (0);
+	else
+		return (1);
+}
+
 void	Server::deleteFromAllTheChannels( Client *client)
 {
 	std::map<std::string, Channel*>::iterator	it;

@@ -34,12 +34,14 @@ class Channel
 		bool	isInvited( Client *client);
 		bool	setTopic(const std::string &topic, Client *Client);
 		const std::string	&getTopic( void );
-		bool	invite(Client *inviter, Client *guest);
+		int		invite(Client *inviter, Client *guest);
 		bool	checkpassword(const std::string &password);
 		//modes
 		void	setTopicChangeOperatorsOnly( bool yesno );
 		void	setInviteOnly( bool yesno );
+		bool	isInviteOnly( void );
 		bool	setPassword(const std::string &password, bool yesno);
+		bool	isPasswordSet( void );
 		bool	setMaxOfClients(const unsigned int &nb, bool yesno);
 
 		void	sendToAllMembers(const std::string &message);
