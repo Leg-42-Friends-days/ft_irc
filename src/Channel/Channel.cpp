@@ -119,12 +119,14 @@ void	Channel::printTopic( void )
 	std::cout << "le topic : " << this->_topic << std::endl;
 }
 
-bool	Channel::invite(Client *inviter, Client *guest)
+int	Channel::invite(Client *inviter, Client *guest)
 {
+	if (this->isAMember(guest))
+		return (3);
 	if (this->_inviteOnly == 1)
 	{
 		if (!this->isOperator(inviter))
-			return (1);
+			return (2);
 	}
 	else
 	{
@@ -159,6 +161,14 @@ void	Channel::setInviteOnly( bool yesno )
 		this->_inviteOnly = 0;
 }
 
+bool	Channel::isInviteOnly( void )
+{
+	if (this->_inviteOnly == 1)
+		return (1);
+	else
+		return (0);
+}
+
 bool	Channel::setPassword(const std::string &password, bool yesno)
 {
 	if (password.empty())
@@ -179,6 +189,14 @@ bool	Channel::setPassword(const std::string &password, bool yesno)
 		}
 	}
 	return (1);
+}
+
+bool	Channel::isPasswordSet( void )
+{
+	if (this->_password == "")
+		return (0);
+	else
+		return (1);
 }
 
 bool	Channel::setMaxOfClients(const unsigned int &nb, bool yesno)
