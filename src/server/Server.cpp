@@ -171,10 +171,12 @@ void	Server::deleteFromAllTheChannels( Client *client)
 	}
 }
 
-void	Server::addChannel( std::string channelName )
+Channel*	Server::addChannel( const std::string &channelName )
 {
+	std::string normalizeName = toLower(channelName);
 	Channel	*newChannel = new Channel(channelName);
-	this->_lobby.insert(std::pair<std::string, Channel*>(channelName, newChannel));
+	this->_lobby.insert(std::pair<std::string, Channel*>(normalizeName, newChannel));
+	return newChannel;
 }
 
 void Server::callCommand(std::string &buffer, Client* client)
@@ -272,20 +274,35 @@ void	Server::printChannels( void )
 	}
 }
 
-int		Server::isChannel( std::string channelName)
-{
-	std::map<std::string, Channel*>::iterator	it;
-	it = this->_lobby.find(channelName);
-	if(it == this->_lobby.end())
-		return 0;
-	return 1;
-}
+// sert a rien, searchChannel le fait deja
+// int		Server::isChannel( std::string channelName)
+// {
+// 	std::map<std::string, Channel*>::iterator	it;
+// 	it = this->_lobby.find(channelName);
+// 	if(it == this->_lobby.end())
+// 		return 0;
+// 	return 1;
+// }
 
-Channel & Server::searchChannel(std::string channelName)
+// fonctions a mettre ou on veut
+std::string toLower(std::string str)
 {
+	size_t i = 0;
+	while(i < str.size())
+	{
+		str[i] = tolower(static_cast<unsigned char>(str[i]));
+		i++;
+	}
+	return str;
+}
+Channel* Server::searchChannel(const std::string &channelName)
+{
+	std::string normalizeName = toLower(channelName);
 	std::map<std::string, Channel*>::iterator	it;
-	it = this->_lobby.find(channelName);
-	return *it->second;
+	it = this->_lobby.find(normalizeName);
+	if(it == _lobby.end())
+		return NULL;
+	return it->second;
 }
 
 // Execption
