@@ -8,10 +8,10 @@ static const CmdInfo cmdInfo[] = {
     {"NICK", cmdNick, 0, false}, // 431 gere par handler
     {"PASS", cmdPass, 1, false},
     {"USER", cmdUser, 4, false},
-    // {"TOPIC", cmdTopic, 1, true},
+    {"TOPIC", cmdTopic, 1, true},
     // {"PING", cmdPing, 0, false}, // 409 gere par handler
     // {"INVITE", cmdInvite, 2, true},
-    // {"JOIN", cmdJoin, 1, true},
+    {"JOIN", cmdJoin, 1, true},
     // {"KICK", cmdKick, 2, true},
     // {"QUIT", cmdQuit, 0, false}, // parametres optionnels
     // {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
@@ -139,24 +139,28 @@ void cmdUser(Server &serv, Client &client, const Message &message)
         return;
     }
 
-    if (checkFormat(message.params[0]))
-    {
-        assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
-        return;
-    }
-
-    if (checkClientUserName(message.params[0], serv))
-    {
-        assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
-        return;
-    }
-    client.setUserName(message.params[0]);
-	std::cout << "Username set to " << message.params[0] << "\n";
 }
-// void cmdTopic(Server &serv, Client &client, const Message &message)
-// {
 
-// }
+void cmdTopic(Server &serv, Client &client, const Message &message)
+{
+
+    if(!serv.isChannel(message.params[0]))
+        assembleResponse(client, ERR_NOSUCHCHANNEL, message.cmd, "No such channel");
+
+    if(!serv.searchChannel(message.params[0]).isAMember(&client))
+        assembleResponse(client, ERR_NOTONCHANNEL, message.cmd, "You're not on that channel");
+
+    if(serv.searchChannel(message.params[0]).setTopic(message.params[1], &client))
+        assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "You're not channel operator");
+    else
+    {
+        std::ostringstream line;
+        line << ':' << nickOrStar(client) << " " << message.cmd << " " << message.params[0] << " :" << message.params[1];
+        sendResponse(client, line.str());
+    }
+    // To be see
+    // ERR_NOCHANMODES
+}
 // void cmdPing(Server &serv, Client &client, const Message &message)
 // {
 
@@ -165,10 +169,30 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 // {
 
 // }
-// void cmdJoin(Server &serv, Client &client, const Message &message)
-// {
 
-// }
+void cmdJoin(Server &serv, Client &client, const Message &message)
+{
+    // ERR_BADCHANMASK
+    // pas de '#'
+
+    // Channe existe ou pas -> le creer si necessaire
+
+    // ERR_CHANNELISFULL
+    // ERR_INVITEONLYCHAN
+
+    // ERR_BADCHANNELKEY
+
+    // RPL_TOPIC
+
+    // pas de topic quqnd tu entres dans un salon
+    // 331 RPL_NOTOPIC
+
+    // afficher command dans client server
+
+
+    // ERR_TOOMANYTARGETS
+    // trop darguments ?
+}
 // void cmdKick(Server &serv, Client &client, const Message &message)
 // {
 
@@ -191,5 +215,5 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 // }
 // void cmdNotice(Server &serv, Client &client, const Message &message)
 // {
-    
+
 // }

@@ -105,9 +105,9 @@ JOIN    #dev
 461	ERR_NEEDMOREPARAMS
 
 // Erreur de nickname
-431	ERR_NONICKNAMEGIVEN
-432	ERR_ERRONEUSNICKNAME
-433	ERR_NICKNAMEINUSE
+431	ERR_NONICKNAMEGIVEN // empty
+432	ERR_ERRONEUSNICKNAME // pb format
+433	ERR_NICKNAMEINUSE // deja use
 
 // Erreur d'appartenance au canal (Attention a ne pas confondre les trois)
 441	ERR_USERNOTINCHANNEL
@@ -127,3 +127,8 @@ JOIN    #dev
 476	ERR_BADCHANMASK (pas de #, caracteres interdits, peut renvoyer 403 a la place)
 482	ERR_CHANOPRIVSNEEDED
 
+
+
+:ircserv 375 Julio :- ircserv Message of the Day -
+:ircserv 372 Julio :- Welcome to our IRC server!
+:ircserv 376 Julio :End of /MOTD command.
