@@ -13,7 +13,7 @@ static const CmdInfo cmdInfo[] = {
     // {"INVITE", cmdInvite, 2, true},
     // {"JOIN", cmdJoin, 1, true},
     // {"KICK", cmdKick, 2, true},
-    // {"QUIT", cmdQuit, 0, false}, // parametres optionnels
+    {"QUIT", cmdQuit, 0, false}, // parametres optionnels
     // {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
     // {"MODE", cmdMode, 1, true},
     // // commande bonus
@@ -153,6 +153,7 @@ void cmdUser(Server &serv, Client &client, const Message &message)
     client.setUserName(message.params[0]);
 	std::cout << "Username set to " << message.params[0] << "\n";
 }
+
 // void cmdTopic(Server &serv, Client &client, const Message &message)
 // {
 
@@ -173,10 +174,17 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 // {
 
 // }
-// void cmdQuit(Server &serv, Client &client, const Message &message)
-// {
 
-// }
+void cmdQuit(Server &serv, Client &client, const Message &message)
+{
+    (void) serv;
+    const char *msg = "Aurevoir !\r\n";
+    if (message.params.empty())
+    {
+        send(client.getFdClient(), msg, strlen(msg), 0);
+    }
+    close(client.getFdClient());
+}
 // void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 // {
 
