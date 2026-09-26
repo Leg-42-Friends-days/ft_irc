@@ -124,6 +124,31 @@ void Server::callCommand(std::string &buffer, Client* client)
 	dispatcher(*this, *client, msg);
 };
 
+void Server::disconnectClient(Client *client)
+{
+	if (client == NULL)
+		return;
+
+	int fd = client->getFdClient();
+
+	std::map<int, Client*>::iterator it = this->_clientRepertory.find(fd);
+	if (it != this->_clientRepertory.end())
+		this->_clientRepertory.erase(it);
+
+	for (size_t i = 0; i < this->_pollFds.size(); i++)
+	{
+		if (this->_pollFds[i].fd == fd)
+		{
+			this->_pollFds[i].fd = -1;
+			this->_pollFds[i].events = 0;
+			this->_pollFds[i].revents = 0;
+			break;
+		}
+	}
+	close(fd);
+	delete client;
+}
+
 void	Server::receiveMess( struct pollfd &pollFd)
 {
 	char buffer[4096];
@@ -138,19 +163,22 @@ void	Server::receiveMess( struct pollfd &pollFd)
 			std::cout << "Client " << it->first << " Disconnected" << "\n";
 		else
 			std::cout << "Client " << it->second->getNickName() << " Disconnected" << "\n";
-		close(pollFd.fd);
+		disconnectClient(it->second);
 	}
 	else
 	{
 		buffer[message] = '\0';
 
 		std::string inputBuffer = buffer;
-		callCommand(inputBuffer, it->second);
+		Client *client = it->second;
+		callCommand(inputBuffer, client);
+		if (this->_clientRepertory.find(pollFd.fd) == this->_clientRepertory.end())
+			return;
 		std::cout << "BUFFER > " << buffer;
-		if (it->second->getNickName().empty())
-			std::cout << "Client " << it->second->getFdClient() << "\n";
+		if (client->getNickName().empty())
+			std::cout << "Client " << client->getFdClient() << "\n";
 		else
-			std::cout << "Client " << it->second->getNickName() << "\n";
+			std::cout << "Client " << client->getNickName() << "\n";
 		// size_t	j = 0;
 		// while (j < this->_pollFds.size())
 		// {
