@@ -1,6 +1,7 @@
 #include "../../includes/Server.hpp"
 #include "../../includes/Client.hpp"
 #include "../../includes/Channel.hpp"
+#include "../../includes/Utils.hpp"
 
 Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _inviteOnly(0), _password(""), _nbMaxOfClients(0)
 {
@@ -92,7 +93,7 @@ void	Channel::printChannelOperators( void )
 	}
 }
 
-bool	Channel::isOperator( Client *client)
+bool	Channel::isOperator( Client *client) const
 {
 	std::map<int, Client*>::iterator	it;
 	std::map<int, Client*>::iterator	it_end;
@@ -250,4 +251,35 @@ void	Channel::sendToAllOperators(const std::string &message)
 		send(this->_operators[i]->getFdClient(), message.c_str(), message.size(), 0);
 		i++;
 	}
+}
+
+void Channel::broadcast(const std::string &out, const Client *except) const
+{
+	std::map<int, Client*>::const_iterator	it = _members.begin();
+	std::map<int, Client*>::const_iterator	it_end = _members.end();
+
+	while (it != it_end)
+	{
+		if(it->second != except)
+		sendResponse(*it->second, out);
+		it++;
+	}
+}
+
+std::string Channel::listMembers() const
+{
+	std::map<int, Client*>::const_iterator	it = _members.begin();
+	std::map<int, Client*>::const_iterator	it_end = _members.end();
+
+	std::string list;
+	while (it != it_end)
+	{
+		if(!list.empty())
+			list += " ";
+		if(isOperator(it->second))
+			list += "@";
+		list += it->second->getNickName();
+		it++;
+	}
+	return list;
 }

@@ -4,6 +4,7 @@
 #include "../../includes/Message.hpp"
 #include "../../includes/Parser.hpp"
 #include "../../includes/Command.hpp"
+#include "../../includes/Utils.hpp"
 
 // Constructeur
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
@@ -285,16 +286,7 @@ void	Server::printChannels( void )
 // }
 
 // fonctions a mettre ou on veut
-std::string toLower(std::string str)
-{
-	size_t i = 0;
-	while(i < str.size())
-	{
-		str[i] = tolower(static_cast<unsigned char>(str[i]));
-		i++;
-	}
-	return str;
-}
+
 Channel* Server::searchChannel(const std::string &channelName)
 {
 	std::string normalizeName = toLower(channelName);

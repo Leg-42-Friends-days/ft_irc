@@ -3,6 +3,7 @@
 #include "Replies.hpp"
 #include "Server.hpp"
 #include "Parser.hpp"
+#include "Utils.hpp"
 
 static const CmdInfo cmdInfo[] = {
     {"NICK", cmdNick, 0, false}, // 431 gere par handler
@@ -22,7 +23,6 @@ static const CmdInfo cmdInfo[] = {
 };
 
 std::string nickOrStar(const Client &client);
-void sendResponse(const Client &client, std::string line);
 void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text);
 
 void dispatcher(Server &serv, Client &client, const Message &message)
@@ -61,18 +61,9 @@ void dispatcher(Server &serv, Client &client, const Message &message)
         return ;
     }
 
-    // appeler handler
+    // appel du handler
     found->ft(serv, client, message);
 }
-
-// static en attendant de savoi où la mettre
-
-void sendResponse(const Client &client, std::string line)
-{
-    line = line + "\r\n";
-    send(client.getFdClient(), line.c_str(), line.size(), 0);
-}
-
 
 void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
 {
@@ -186,7 +177,7 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 void cmdJoin(Server &serv, Client &client, const Message &message)
 {
     // Verifier qu'il y a un # devant le nom du channel demande
-    if(message.params[0][0] == '#')
+    if(message.params[0][0] != '#')
     {
         assembleResponse(client, ERR_BADCHANMASK, message.params[0], "Bad Channel Mask");
         return;
@@ -197,41 +188,54 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     if(chan == NULL)
     {
         chan = serv.addChannel(message.params[0]);
-        chan->addMember(&client);
         chan->addOperator(&client);
     }
     else
     {
-        int result = chan->addMember(&client);
-        if(result == 1)
+        // Verifier si channel plein
+        if(!chan->spaceStatus())
         {
             assembleResponse(client, ERR_CHANNELISFULL, message.params[0], "Channel is full");
             return;
         }
-        else if(result == 2)
+        // Verifier si invite-only et non invite
+        if(chan->onlyInvite() && !chan->getInviteStatus(&client))
         {
             assembleResponse(client, ERR_INVITEONLYCHAN, message.params[0], "Channel is set on invited only");
             return;
         }
-        else if()
+        if(chan->keyStatus())
         {
-            // Verifier si un mot de passe est set
-            // ERR_BADCHANNELKEY
-        }
-        else
-        {
-
+            std::string key;
+            if(message.params.size() > 1)
+                key = message.params[1];
+            if(!chan->checkpassword(key))
+            {
+                assembleResponse(client, ERR_BADCHANNELKEY, message.params[0], "Cannot join the channel (wrong keys)");
+               return;
+            }
         }
     }
+    // Ajout du membre
+    chan->addMember(&client);
 
+    // Retirer invitation si elle existe
+    chan->withdrawInvite(client);
+
+    // Diffuser :nick!user@host JOIN #channelName a tous les membres du channel
+    std::string out = ":" + client.prefix() + " JOIN " + chan->getChannelName();
+    chan->broadcast(out, NULL);
+
+    // Topic
     if(chan->getTopic().empty())
          assembleResponse(client, RPL_NOTOPIC, message.params[0], "No Topic is set");
     else
          assembleResponse(client, RPL_TOPIC, message.params[0],chan->getTopic());
 
-    // RPL_NAMREPLY
-    // afficher command dans client server
-    // RPL_ENDOFNAMES
+    // Liste des membres
+    std::string param = "= " + chan->getChannelName();
+    assembleResponse(client, RPL_NAMREPLY, param, chan->listMembers());
+    assembleResponse(client, RPL_ENDOFNAMES, chan->getChannelName(), "End of /NAMES list");
 }
 
 // void cmdKick(Server &serv, Client &client, const Message &message)
