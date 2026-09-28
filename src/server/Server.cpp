@@ -158,6 +158,8 @@ void	Server::deleteFromAllTheChannels( Client *client)
 	it = this->_lobby.begin();
 	while (it != this->_lobby.end())
 	{
+		if (it->second->isInvited(client))
+			it->second->removeInvited(client);
 		if (it->second->isAMember(client))
 		{
 			it->second->removeMember(client);
@@ -171,61 +173,54 @@ void	Server::deleteFromAllTheChannels( Client *client)
 	}
 }
 
-Channel*	Server::addChannel( const std::string &channelName )
-{
-	std::string normalizeName = toLower(channelName);
-	Channel	*newChannel = new Channel(channelName);
-	this->_lobby.insert(std::pair<std::string, Channel*>(normalizeName, newChannel));
-	return newChannel;
-}
 
 void Server::callCommand(std::string &buffer, Client* client)
 {
 	std::string line = trim(buffer);
-
+	
 	while (line[0] == ':')
-		line = checkPrefix(line);
+	line = checkPrefix(line);
 	std::stringstream stream(line);
-
+	
 	Message msg;
 	std::string content;
-
+	
 	stream >> msg.cmd;
-
+	
 	while (stream >> content)
-		msg.params.push_back(content);
-
+	msg.params.push_back(content);
+	
 	dispatcher(*this, *client, msg);
 	// else if (upperCase(line).compare(0, 4, "JOIN") == 0)
 	// {
 		// std::string cut = cutLine(line, 4);
-	// 	//insert JOIN fonction
-	// }
-	// else if (upperCase(line).compare(0, 7, "PRIVMSG") == 0)
-	// {
-		// std::string cut = cutLine(line, 7);
-	// 	//insert PRIVMSG fonction
-	// }
-	// else if (upperCase(line).compare(0, 5, "TOPIC") == 0)
-	// {
-	// std::string cut = cutLine(line, 5);
-	// 	//insert TOPIC fonction
-	// else if (upperCase(line).compare(0, 6, "INVITE") == 0)
-	// {
-		// std::string cut = cutLine(line, 7);
-		// insert INVITE fonction
-	// }
-	// else if (upperCase(line).compare(0, 4, "KICK") == 0)
-	// {
-	// std::string cut = cutLine(line, 4);
-	// 	//insert KICK fonction
-	// }
-	// }
-	// else
-	// {
-	// 	std::string msg = "command not found : " + line + "\n";
-	// 	send(it->first, msg.c_str(), std::strlen(msg.c_str()), 0);
-	// }
+		// 	//insert JOIN fonction
+		// }
+		// else if (upperCase(line).compare(0, 7, "PRIVMSG") == 0)
+		// {
+			// std::string cut = cutLine(line, 7);
+			// 	//insert PRIVMSG fonction
+			// }
+			// else if (upperCase(line).compare(0, 5, "TOPIC") == 0)
+			// {
+				// std::string cut = cutLine(line, 5);
+				// 	//insert TOPIC fonction
+				// else if (upperCase(line).compare(0, 6, "INVITE") == 0)
+				// {
+					// std::string cut = cutLine(line, 7);
+					// insert INVITE fonction
+					// }
+					// else if (upperCase(line).compare(0, 4, "KICK") == 0)
+					// {
+						// std::string cut = cutLine(line, 4);
+						// 	//insert KICK fonction
+						// }
+						// }
+						// else
+						// {
+							// 	std::string msg = "command not found : " + line + "\n";
+							// 	send(it->first, msg.c_str(), std::strlen(msg.c_str()), 0);
+							// }
 };
 
 void	Server::receiveMess( struct pollfd &pollFd)
@@ -235,7 +230,7 @@ void	Server::receiveMess( struct pollfd &pollFd)
 	std::map<int, Client*>::iterator	it;
 	it = this->_clientRepertory.find(pollFd.fd);
 	if(it == _clientRepertory.end())
-		return;
+	return;
 	if (message <= 0)
 	{
 		this->deleteClient(it->second);
@@ -243,24 +238,24 @@ void	Server::receiveMess( struct pollfd &pollFd)
 	else
 	{
 		buffer[message] = '\0';
-
+		
 		std::string inputBuffer = buffer;
 		callCommand(inputBuffer, it->second);
 		std::cout << "BUFFER > " << buffer;
 		if (it->second->getNickName().empty())
-			std::cout << "Client " << it->second->getFdClient() << "\n";
+		std::cout << "Client " << it->second->getFdClient() << "\n";
 		else
 			std::cout << "Client " << it->second->getNickName() << "\n";
 		// size_t	j = 0;
 		// while (j < this->_pollFds.size())
 		// {
-		// 	if (this->_pollFds[j].fd != this->_servfd && this->_pollFds[j].fd != pollFd.fd)
-		// 		send(this->_pollFds[j].fd, buffer, message, 0);
-		// 	j++;
-		// }
+			// 	if (this->_pollFds[j].fd != this->_servfd && this->_pollFds[j].fd != pollFd.fd)
+			// 		send(this->_pollFds[j].fd, buffer, message, 0);
+			// 	j++;
+			// }
+		}
 	}
-}
-
+	
 void	Server::printChannels( void )
 {
 	std::map<std::string, Channel*>::iterator	it;
@@ -273,18 +268,18 @@ void	Server::printChannels( void )
 		it ++;
 	}
 }
-
-// sert a rien, searchChannel le fait deja
-// int		Server::isChannel( std::string channelName)
-// {
-// 	std::map<std::string, Channel*>::iterator	it;
-// 	it = this->_lobby.find(channelName);
-// 	if(it == this->_lobby.end())
-// 		return 0;
-// 	return 1;
-// }
-
-// fonctions a mettre ou on veut
+	
+	// sert a rien, searchChannel le fait deja
+	// int		Server::isChannel( std::string channelName)
+	// {
+		// 	std::map<std::string, Channel*>::iterator	it;
+		// 	it = this->_lobby.find(channelName);
+		// 	if(it == this->_lobby.end())
+		// 		return 0;
+		// 	return 1;
+		// }
+		
+		// fonctions a mettre ou on veut
 std::string toLower(std::string str)
 {
 	size_t i = 0;
@@ -295,13 +290,22 @@ std::string toLower(std::string str)
 	}
 	return str;
 }
+
+Channel*	Server::addChannel( const std::string &channelName )
+{
+	std::string normalizeName = toLower(channelName);
+	Channel	*newChannel = new Channel(channelName);
+	this->_lobby.insert(std::pair<std::string, Channel*>(normalizeName, newChannel));
+	return newChannel;
+}
+
 Channel* Server::searchChannel(const std::string &channelName)
 {
 	std::string normalizeName = toLower(channelName);
 	std::map<std::string, Channel*>::iterator	it;
 	it = this->_lobby.find(normalizeName);
 	if(it == _lobby.end())
-		return NULL;
+	return NULL;
 	return it->second;
 }
 

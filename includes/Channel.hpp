@@ -21,7 +21,7 @@ class Channel
 		Channel(std::string channelName);
 		bool	isEmpty( void );
 		// members
-		int	addMember( Client *client);
+		int		addMember( Client *client);
 		void	removeMember( Client *client);
 		void	printChannelMembers( void );
 		bool	isAMember( Client *client);
@@ -32,9 +32,12 @@ class Channel
 		bool	isOperator( Client *client);
 		//invited
 		bool	isInvited( Client *client);
+		int		invite(Client *inviter, Client *guest);
+		int		addInvite ( Client *client );
+		void	removeInvited( Client *client );
+		
 		bool	setTopic(const std::string &topic, Client *Client);
 		const std::string	&getTopic( void );
-		int		invite(Client *inviter, Client *guest);
 		bool	checkpassword(const std::string &password);
 		//modes
 		void	setTopicChangeOperatorsOnly( bool yesno );
