@@ -134,17 +134,13 @@ void cmdPass(Server &serv, Client &client, const Message &message)
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
 	(void)serv;
-	if (message.params.empty())
-	{
-		assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null username isn't a parameter");
-		return;
-	}
 
-    if (checkFormat(message.params[0]))
-	{
-		assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
-		return;
-	}
+	//parametre de user : 
+	// 1 username
+	// 2 mode
+	// 3 ignore
+	// 4 vrai nom
+	// donc un Client doit avoir un true name, le type de mode et le 3eme parametre sera toujours * 
 
 	if (checkClientUserName(message.params[0], serv))
 	{
@@ -152,6 +148,7 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 		return;
 	}
     client.setUserName(message.params[0]);
+
 	std::cout << "Username set to " << message.params[0] << "\n";
 }
 
