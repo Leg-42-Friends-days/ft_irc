@@ -101,7 +101,8 @@ int main(int ac, char **av)
 	{
 		serv.initServ();
 		serv.initPollFds();
-		serv.addChannel("general");
+		Channel	*chan = serv.addChannel("general");
+		(void)chan;
 		serv.printChannels();
 		pollLoop(serv);
 	}

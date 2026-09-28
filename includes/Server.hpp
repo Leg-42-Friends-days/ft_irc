@@ -31,10 +31,10 @@ class Server
 		void	receiveMess(struct pollfd &pollFd);
 		void	callCommand(std::string &buffer, Client* client);
 		//Channel
-		Channel*	Server::addChannel( const std::string &channelName );
+		Channel*	addChannel( const std::string &channelName );
 		void	printChannels( void );
 		// int		isChannel( std::string channelName);
-		Channel* Server::searchChannel(const std::string &channelName);
+		Channel* 	searchChannel(const std::string &channelName);
 		void	deleteFromAllTheChannels( Client *client);
 
 

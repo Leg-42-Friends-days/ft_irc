@@ -50,7 +50,8 @@ void	Channel::removeMember( Client *client)
 	std::cout << "Retrait du membre " << client->getFdClient() << " au channel " << this->_channelName << std::endl;
 	std::map<int, Client*>::iterator	it;
 	it = this->_members.find(client->getFdClient());
-	this->_members.erase(it);
+	if (it != this->_members.end())
+		this->_members.erase(it);
 }
 
 bool	Channel::isAMember( Client *client)
@@ -76,7 +77,8 @@ void	Channel::removeOperators( Client *client)
 	std::cout << "Retrait du membre " << client->getFdClient() << " a la liste des operateurs du channel " << this->_channelName << std::endl;
 	std::map<int, Client*>::iterator	it;
 	it = this->_operators.find(client->getFdClient());
-	this->_operators.erase(it);
+	if (it != this->_operators.end())
+		this->_operators.erase(it);
 }
 void	Channel::printChannelOperators( void )
 {
@@ -98,7 +100,7 @@ bool	Channel::isOperator( Client *client)
 	std::map<int, Client*>::iterator	it_end;
 	it_end = this->_operators.end();
 	it = this->_operators.find(client->getFdClient());
-
+	
 	if (it == it_end)
 		return (0);
 	else
@@ -116,6 +118,26 @@ bool	Channel::isInvited( Client *client)
 		return (0);
 	else
 		return (1);
+}
+
+int		Channel::addInvite ( Client *client )
+{
+	if (this->_nbMaxOfClients != 0)
+	{
+		if (this->_members.size() == this->_nbMaxOfClients)
+			return (1);
+	}
+	this->_invited.insert(std::pair<int, Client*>(client->getFdClient(), client));
+	return (0);
+}
+
+void	Channel::removeInvited( Client *client )
+{
+	std::cout << "Retrait de l'invite " << client->getFdClient() << " au channel " << this->_channelName << std::endl;
+	std::map<int, Client*>::iterator	it;
+	it = this->_invited.find(client->getFdClient());
+	if (it != this->_invited.end())
+		this->_invited.erase(it);
 }
 
 bool	Channel::setTopic(const std::string &topic, Client *Client)
@@ -140,19 +162,17 @@ const std::string	&Channel::getTopic( void )
 
 int	Channel::invite(Client *inviter, Client *guest)
 {
-	if (this->isAMember(guest))
-		return (3);
+	if (!this->isAMember(inviter))
+		return (1);
 	if (this->_inviteOnly == 1)
 	{
 		if (!this->isOperator(inviter))
 			return (2);
-	}
-	else
-	{
-		if (!this->isAMember(inviter))
-			return (1);
-	}
-	this->addMember(guest);
+	}	
+	if (this->isAMember(guest))
+		return (3);
+	if (!this->isInvited(guest))
+		this->addInvite(guest);
 	return (0);
 }
 
