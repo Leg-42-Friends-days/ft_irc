@@ -261,20 +261,68 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
 
 void cmdKick(Server &serv, Client &client, const Message &message)
 {
-	(void)serv;
-	(void)client;
-	std::cout << message.params[0] << std::endl;
+	std::vector<std::string>	channels = splitWithComma(message.params[0]);
+	std::vector<std::string>	users = splitWithComma(message.params[1]);
+	std::vector<std::string>::iterator	it;
+	it = channels.begin();
+	while (it != channels.end())
+	{
+		std::cout << *it << std::endl;
+		it ++;
+	}
+	if (channels.size() != 1 && users.size() > 1)
+	{
+		if (channels.size() != users.size())
+			return ;
+	}
+	size_t	chan_i = 0;
+	size_t	user_i = 0;
+	while (user_i < users.size())
+	{
+		if(channels[chan_i][0] != '#')
+		{
+			assembleResponse(client, ERR_BADCHANMASK, channels[chan_i], "Bad Channel Mask");
+			return;
+		}
+		Channel *chan = serv.searchChannel(channels[chan_i]);
+		if (chan == NULL)
+		{
+			assembleResponse(client, ERR_NOSUCHCHANNEL, channels[chan_i], "No such channel");
+			return ;
+		}
+		if (!chan->isAMember(&client))
+		{
+			assembleResponse(client, ERR_NOTONCHANNEL, channels[chan_i], "You're not on that channel");
+			return ;
+		}
+		if (!chan->isOperator(&client))
+		{
+			assembleResponse(client, ERR_CHANOPRIVSNEEDED, channels[chan_i], "You're not channel operator");
+			return ;
+		}
+		Client	*user = serv.findClientByNickname(users[user_i])->second;
+		if (chan->removeMember(user))
+		{                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+			assembleResponse(client, ERR_USERNOTINCHANNEL, client.getNickName() + " " + users[user_i] + " " + channels[chan_i], "They aren't on that channel");
+			return ;
+		}
+		if (chan_i < channels.size())
+			chan_i ++;
+		user_i ++;
+	}
 }
 
 void cmdQuit(Server &serv, Client &client, const Message &message)
 {
     (void) serv;
+	(void)client;
+	(void)message;
     const char *msg = "Aurevoir !\r\n";
     if (message.params.empty())
     {
         send(client.getFdClient(), msg, strlen(msg), 0);
     }
-    close(client.getFdClient());
+    serv.deleteClient(&client);
 }
 
 // void cmdPrivMsg(Server &serv, Client &client, const Message &message)

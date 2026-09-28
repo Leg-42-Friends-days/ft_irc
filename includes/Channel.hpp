@@ -22,7 +22,7 @@ class Channel
 		bool	isEmpty( void );
 		// members
 		int		addMember( Client *client);
-		void	removeMember( Client *client);
+		bool	removeMember( Client *client);
 		void	printChannelMembers( void );
 		bool	isAMember( Client *client);
 		//operators

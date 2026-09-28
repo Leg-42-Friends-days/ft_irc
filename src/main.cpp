@@ -68,7 +68,9 @@ void	pollLoop(Server &serv)
 				{
 					try
 					{
-						serv.receiveMess(serv.getpollFds()[i]);
+						
+						if (serv.receiveMess(serv.getpollFds()[i]))
+							continue;
 					}
 					catch(const std::exception& e)
 					{

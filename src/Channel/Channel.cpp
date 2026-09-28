@@ -45,13 +45,18 @@ void	Channel::printChannelMembers( void )
 	}
 }
 
-void	Channel::removeMember( Client *client)
+bool	Channel::removeMember( Client *client)
 {
 	std::cout << "Retrait du membre " << client->getFdClient() << " au channel " << this->_channelName << std::endl;
 	std::map<int, Client*>::iterator	it;
 	it = this->_members.find(client->getFdClient());
-	if (it != this->_members.end())
+	if (it == this->_members.end())
+		return (1);
+	else
+	{
 		this->_members.erase(it);
+		return (0);
+	}
 }
 
 bool	Channel::isAMember( Client *client)
