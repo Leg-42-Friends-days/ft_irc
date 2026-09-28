@@ -152,7 +152,7 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 		return;
 	}
     client.setUserName(message.params[0]);
-	std::cout << "Nickname set to " << message.params[0] << "\n";
+	std::cout << "Username set to " << message.params[0] << "\n";
 }
 
 //void cmdTopic(Server &serv, Client &client, const Message &message)
