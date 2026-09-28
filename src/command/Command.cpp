@@ -281,13 +281,8 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 
 void cmdQuit(Server &serv, Client &client, const Message &message)
 {
-    (void) serv;
-    const char *msg = "Aurevoir !\r\n";
-    if (message.params.empty())
-    {
-        send(client.getFdClient(), msg, strlen(msg), 0);
-    }
-    close(client.getFdClient());
+    (void) message;
+    serv.deleteClient(&client);
 }
 
 // void cmdPrivMsg(Server &serv, Client &client, const Message &message)
