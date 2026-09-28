@@ -8,10 +8,10 @@ static const CmdInfo cmdInfo[] = {
     {"NICK", cmdNick, 0, false}, // 431 gere par handler
     {"PASS", cmdPass, 1, false},
     {"USER", cmdUser, 4, false},
-    // {"TOPIC", cmdTopic, 1, true},
+    {"TOPIC", cmdTopic, 1, true},
     // {"PING", cmdPing, 0, false}, // 409 gere par handler
-    // {"INVITE", cmdInvite, 2, true},
-    // {"JOIN", cmdJoin, 1, true},
+    //{"INVITE", cmdInvite, 2, true},
+    //{"JOIN", cmdJoin, 1, true},
     // {"KICK", cmdKick, 2, true},
     {"QUIT", cmdQuit, 0, false}, // parametres optionnels
     // {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
@@ -128,48 +128,112 @@ void cmdPass(Server &serv, Client &client, const Message &message)
         assembleResponse(client, ERR_PASSWDMISMATCH, message.params[0], "Wrong password");
         return;
     }
-    client.validatePassword();    
+    client.validatePassword();
 }
 
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
+    (void)serv;
     if (message.params.empty())
     {
         assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null username isn't a parameter");
         return;
     }
 
-    if (checkFormat(message.params[0]))
-    {
-        assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
-        return;
-    }
-
-    if (checkClientUserName(message.params[0], serv))
-    {
-        assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
-        return;
-    }
-    client.setUserName(message.params[0]);
-	std::cout << "Username set to " << message.params[0] << "\n";
 }
 
-// void cmdTopic(Server &serv, Client &client, const Message &message)
-// {
+void cmdTopic(Server &serv, Client &client, const Message &message)
+{
 
-// }
+    // if(!serv.isChannel(message.params[0]))
+    // {
+    //     assembleResponse(client, ERR_NOSUCHCHANNEL, message.cmd, "No such channel");
+    //     return;
+    // }
+    // if(!serv.searchChannel(message.params[0]).isAMember(&client))
+    // {
+    //     assembleResponse(client, ERR_NOTONCHANNEL, message.cmd, "You're not on that channel");
+    //     return;
+    // }
+    // if(serv.searchChannel(message.params[0]).setTopic(message.params[1], &client))
+    // {
+    //     assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "You're not channel operator");
+    //     return;
+    // }
+    // else
+    // {
+    //     std::ostringstream line;
+    //     line << ':' << nickOrStar(client) << " " << message.cmd << " " << message.params[0] << " :" << message.params[1];
+    //     sendResponse(client, line.str());
+    //     return;
+    // }
+    // To be see
+    // ERR_NOCHANMODES
+}
 // void cmdPing(Server &serv, Client &client, const Message &message)
 // {
 
 // }
-// void cmdInvite(Server &serv, Client &client, const Message &message)
-// {
+//void cmdInvite(Server &serv, Client &client, const Message &message)
+//{
 
-// }
-// void cmdJoin(Server &serv, Client &client, const Message &message)
-// {
+    //ERR_NOSUCHNICK
+    //le mec n'existe pas
 
-// }
+    //ERR_NOTONCHANNEL
+    //l'inviteur n'appartient pas au channel
+
+void cmdJoin(Server &serv, Client &client, const Message &message)
+{
+    // Verifier qu'il y a un # devant le nom du channel demande
+    if(message.params[0][0] == '#')
+    {
+        assembleResponse(client, ERR_BADCHANMASK, message.params[0], "Bad Channel Mask");
+        return;
+    }
+
+    Channel * chan = serv.searchChannel(message.params[0]);
+    // Verifier si le channel existe, sinon go le creer et le createur devient operator et membre
+    if(chan == NULL)
+    {
+        chan = serv.addChannel(message.params[0]);
+        chan->addMember(&client);
+        chan->addOperator(&client);
+    }
+    else
+    {
+        int result = chan->addMember(&client);
+        if(result == 1)
+        {
+            assembleResponse(client, ERR_CHANNELISFULL, message.params[0], "Channel is full");
+            return;
+        }
+        else if(result == 2)
+        {
+            assembleResponse(client, ERR_INVITEONLYCHAN, message.params[0], "Channel is set on invited only");
+            return;
+        }
+        else if()
+        {
+            // Verifier si un mot de passe est set
+            // ERR_BADCHANNELKEY
+        }
+        else
+        {
+
+        }
+    }
+
+    if(chan->getTopic().empty())
+         assembleResponse(client, RPL_NOTOPIC, message.params[0], "No Topic is set");
+    else
+         assembleResponse(client, RPL_TOPIC, message.params[0],chan->getTopic());
+
+    // RPL_NAMREPLY
+    // afficher command dans client server
+    // RPL_ENDOFNAMES
+}
+
 // void cmdKick(Server &serv, Client &client, const Message &message)
 // {
 
@@ -199,5 +263,5 @@ void cmdQuit(Server &serv, Client &client, const Message &message)
 // }
 // void cmdNotice(Server &serv, Client &client, const Message &message)
 // {
-    
+
 // }

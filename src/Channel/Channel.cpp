@@ -7,14 +7,26 @@ Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _invit
 	this->_channelName = channelName;
 }
 
-bool	Channel::addMember( Client *client)
+bool	Channel::isEmpty( void )
+{
+	if (this->_members.empty())
+		return (1);
+	else
+		return (0);
+}
+
+int	Channel::addMember( Client *client)
 {
 	if (this->_nbMaxOfClients != 0)
 	{
 		if (this->_members.size() == this->_nbMaxOfClients)
 			return (1);
 	}
-	std::cout << "Ajout du membre " << client->getFdClient() << " au serveur " << this->_channelName << std::endl;
+	if (this->_inviteOnly == 1)
+	{
+		if (!this->isInvited(client))
+			return (2);
+	}
 	this->_members.insert(std::pair<int, Client*>(client->getFdClient(), client));
 	return (0);
 }
@@ -93,6 +105,19 @@ bool	Channel::isOperator( Client *client)
 		return (1);
 }
 
+bool	Channel::isInvited( Client *client)
+{
+	std::map<int, Client*>::iterator	it;
+	std::map<int, Client*>::iterator	it_end;
+	it_end = this->_invited.end();
+	it = this->_invited.find(client->getFdClient());
+
+	if (it == it_end)
+		return (0);
+	else
+		return (1);
+}
+
 bool	Channel::setTopic(const std::string &topic, Client *Client)
 {
 	if (topic.empty())
@@ -106,17 +131,21 @@ bool	Channel::setTopic(const std::string &topic, Client *Client)
 	return (0);
 }
 
-void	Channel::printTopic( void )
+const std::string	&Channel::getTopic( void )
 {
-	std::cout << "le topic : " << this->_topic << std::endl;
+	if(this->_topic.empty())
+		return NULL;
+	return this->_topic;
 }
 
-bool	Channel::invite(Client *inviter, Client *guest)
+int	Channel::invite(Client *inviter, Client *guest)
 {
+	if (this->isAMember(guest))
+		return (3);
 	if (this->_inviteOnly == 1)
 	{
 		if (!this->isOperator(inviter))
-			return (1);
+			return (2);
 	}
 	else
 	{
@@ -151,6 +180,14 @@ void	Channel::setInviteOnly( bool yesno )
 		this->_inviteOnly = 0;
 }
 
+bool	Channel::isInviteOnly( void )
+{
+	if (this->_inviteOnly == 1)
+		return (1);
+	else
+		return (0);
+}
+
 bool	Channel::setPassword(const std::string &password, bool yesno)
 {
 	if (password.empty())
@@ -171,6 +208,14 @@ bool	Channel::setPassword(const std::string &password, bool yesno)
 		}
 	}
 	return (1);
+}
+
+bool	Channel::isPasswordSet( void )
+{
+	if (this->_password == "")
+		return (0);
+	else
+		return (1);
 }
 
 bool	Channel::setMaxOfClients(const unsigned int &nb, bool yesno)
