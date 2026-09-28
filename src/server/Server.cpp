@@ -216,15 +216,8 @@ void	Server::receiveMess( struct pollfd &pollFd)
 		std::cout << "Client " << it->second->getFdClient() << "\n";
 		else
 			std::cout << "Client " << it->second->getNickName() << "\n";
-		// size_t	j = 0;
-		// while (j < this->_pollFds.size())
-		// {
-			// 	if (this->_pollFds[j].fd != this->_servfd && this->_pollFds[j].fd != pollFd.fd)
-			// 		send(this->_pollFds[j].fd, buffer, message, 0);
-			// 	j++;
-			// }
-		}
 	}
+}
 	
 void	Server::printChannels( void )
 {
