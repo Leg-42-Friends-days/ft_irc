@@ -140,6 +140,19 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 		return;
 	}
 
+    if (checkFormat(message.params[0]))
+	{
+		assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
+		return;
+	}
+
+	if (checkClientUserName(message.params[0], serv))
+	{
+		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
+		return;
+	}
+    client.setUserName(message.params[0]);
+	std::cout << "Nickname set to " << message.params[0] << "\n";
 }
 
 //void cmdTopic(Server &serv, Client &client, const Message &message)
