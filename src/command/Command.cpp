@@ -13,7 +13,7 @@ static const CmdInfo cmdInfo[] = {
 	{"INVITE", cmdInvite, 2, true},
 	//{"JOIN", cmdJoin, 1, true},
 	{"KICK", cmdKick, 2, true},
-	// {"QUIT", cmdQuit, 0, false}, // parametres optionnels
+	{"QUIT", cmdQuit, 0, false}, // parametres optionnels
 	// {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
 	// {"MODE", cmdMode, 1, true},
 	// // commande bonus
