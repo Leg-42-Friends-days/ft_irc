@@ -56,6 +56,11 @@ void Client::setUserName(const std::string &userName)
     this->_hasUser = true;
 }
 
+void Client::setTrueName(const std::string &trueName)
+{
+    this->_trueName = trueName;
+}
+
 // accesseurs
 bool Client::hasNick() const
 {

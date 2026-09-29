@@ -40,6 +40,7 @@ void	Server::initServ( void )
 {
 	addrinfo	hint;
 	addrinfo	*servinfo;
+	std::memset(&hint, 0, sizeof(hint));
 	hint.ai_family = AF_UNSPEC;
 	hint.ai_socktype = SOCK_STREAM;
 	hint.ai_flags = AI_PASSIVE;

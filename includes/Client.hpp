@@ -10,6 +10,7 @@ class Client
 		std::string _nickName; // identite publique du user
 		std::string _userName; // utile pour prefixe
 		std::string _hostName; // issue de la fonction accept, ne changera jamais, necessaire pour le prefixe
+		std::string _trueName;
 		bool _hasPwd;
 		bool _hasNick;
 		bool _hasUser;
@@ -30,7 +31,7 @@ class Client
 		// Setters
 		void setNickName(const std::string &nickName);
 		void setUserName(const std::string &userName);
-
+		void setTrueName(const std::string &truename);
 		// Accesseurs
 		bool hasNick() const;
 		bool hasPwd() const;

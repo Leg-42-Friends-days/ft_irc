@@ -147,9 +147,16 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
 		return;
 	}
+	// if (checkModeList(message.params[1], serv))
+	// {
+
+	// }
     client.setUserName(message.params[0]);
+	// client.setClientMode(message.params[1]);
+	client.setTrueName(message.params[3]);
 
 	std::cout << "Username set to " << message.params[0] << "\n";
+	std::cout << "True name set to " << message.params[3] << "\n";
 }
 
 //void cmdTopic(Server &serv, Client &client, const Message &message)
