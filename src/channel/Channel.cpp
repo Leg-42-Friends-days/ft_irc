@@ -129,17 +129,9 @@ void	Channel::removeInvited( Client *client )
 		this->_invited.erase(it);
 }
 
-bool	Channel::setTopic(const std::string &topic, Client *Client)
+void	Channel::setTopic(const std::string &topic)
 {
-	if (topic.empty())
-		this->_topic.clear();
-	if (this->_topicChangeOperatorsOnly == 1)
-	{
-		if (!this->isOperator(Client))
-			return (1);
-	}
 	this->_topic = topic;
-	return (0);
 }
 
 const std::string	&Channel::getTopic( void )
@@ -303,4 +295,9 @@ bool Channel::isFull() const
 			return (1);
 	}
 	return(0);
+}
+
+bool Channel::isTopicOpOnly( void ) const
+{
+	return this->_topicChangeOperatorsOnly;
 }

@@ -36,8 +36,8 @@ class Channel
 		int		addInvite ( Client *client );
 		void	removeInvited( Client *client );
 
-		bool	setTopic(const std::string &topic, Client *Client);
-		const std::string	&getTopic( void );
+		void	setTopic(const std::string &topic);
+		const	std::string	&getTopic( void );
 		bool	checkpassword(const std::string &password);
 		//modes
 		void	setTopicChangeOperatorsOnly( bool yesno );
@@ -56,5 +56,6 @@ class Channel
 		std::string listMembers( void ) const;
 		const std::string &getChannelName( void ) const;
 		bool isFull() const;
+		bool isTopicOpOnly() const;
 
 };
