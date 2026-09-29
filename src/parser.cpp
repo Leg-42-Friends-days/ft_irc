@@ -3,6 +3,21 @@
 #include "../includes/Replies.hpp"
 #include "../includes/Server.hpp"
 
+std::vector<std::string> splitWithComma(std::string input)
+{
+	std::vector<std::string>	output;
+	std::size_t found = input.find_first_of(",");
+	std::string	subStr = input.substr(0, found);
+	output.push_back(subStr);
+	while (found != std::string::npos)
+ 	{
+		std::size_t	begin = found;
+		found = input.find_first_of(",", begin + 1);
+		subStr = input.substr(begin + 1, found - (begin + 1));
+		output.push_back(subStr);
+  	}
+	return (output);
+}
 std::string trim(std::string &buffer)
 {
 	const std::string wspace = " \t\r\n";

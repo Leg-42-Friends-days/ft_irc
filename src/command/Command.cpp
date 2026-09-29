@@ -6,20 +6,20 @@
 #include "Utils.hpp"
 
 static const CmdInfo cmdInfo[] = {
-    {"NICK", cmdNick, 0, false}, // 431 gere par handler
-    {"PASS", cmdPass, 1, false},
-    {"USER", cmdUser, 4, false},
-    {"TOPIC", cmdTopic, 1, true},
-    // {"PING", cmdPing, 0, false}, // 409 gere par handler
-    //{"INVITE", cmdInvite, 2, true},
-    //{"JOIN", cmdJoin, 1, true},
-    // {"KICK", cmdKick, 2, true},
-    // {"QUIT", cmdQuit, 0, false}, // parametres optionnels
-    // {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
-    // {"MODE", cmdMode, 1, true},
-    // // commande bonus
-    // {"LIST", cmdList, 0, true}, // aucun parametre obligatoire
-    // {"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
+	{"NICK", cmdNick, 0, false}, // 431 gere par handler
+	{"PASS", cmdPass, 1, false},
+	{"USER", cmdUser, 4, false},
+	//{"TOPIC", cmdTopic, 1, true},
+	// {"PING", cmdPing, 0, false}, // 409 gere par handler
+	{"INVITE", cmdInvite, 2, true},
+	//{"JOIN", cmdJoin, 1, true},
+	{"KICK", cmdKick, 2, true},
+	{"QUIT", cmdQuit, 0, false}, // parametres optionnels
+	// {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
+	// {"MODE", cmdMode, 1, true},
+	// // commande bonus
+	// {"LIST", cmdList, 0, true}, // aucun parametre obligatoire
+	// {"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
 };
 
 std::string nickOrStar(const Client &client);
@@ -65,114 +65,159 @@ void dispatcher(Server &serv, Client &client, const Message &message)
     found->ft(serv, client, message);
 }
 
+void sendResponse(const Client &client, std::string line)
+{
+	line = line + "\r\n";
+	send(client.getFdClient(), line.c_str(), line.size(), 0);
+}
+
+
 void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
 {
-    std::ostringstream line;
-    line << ':' << SERVER_NAME << " " << code << " " << nickOrStar(client);
-    if(!param.empty())
-        line <<  " " << param;
-    if(!text.empty())
-        line <<  " :" << text;
-    sendResponse(client, line.str());
+	std::ostringstream line;
+	line << ':' << SERVER_NAME << " " << code << " " << nickOrStar(client);
+	if(!param.empty())
+		line <<  " " << param;
+	if(!text.empty())
+		line <<  " :" << text;
+	sendResponse(client, line.str());
 }
 
 bool checkFormat(const std::string &msg)
 {
-    for (size_t i = 0; i < msg.length(); i++)
-    {
-        if (std::ispunct(msg[i]))
-            return (true);
-    }
-    return (false);
+	for (size_t i = 0; i < msg.length(); i++)
+	{
+		if (std::ispunct(msg[i]))
+			return (true);
+	}
+	return (false);
 }
 
 void cmdNick(Server &serv, Client &client, const Message &message)
 {
-    if (message.params.empty())
-    {
-        assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null Nickname isn't a parameter");
-        return;
-    }
+	if (message.params.empty())
+	{
+		assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null Nickname isn't a parameter");
+		return;
+	}
 
-    if (checkFormat(message.params[0]))
-    {
-        assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
-        return;
-    }
+	if (checkFormat(message.params[0]))
+	{
+		assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
+		return;
+	}
 
-    if (checkClientNickName(message.params[0], serv))
-    {
-        assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use");
-        return;
-    }
+	if (checkClientNickName(message.params[0], serv))
+	{
+		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use");
+		return;
+	}
 
-    client.setNickName(message.params[0]);
+	client.setNickName(message.params[0]);
 	std::cout << "Nickname set to " << message.params[0] << "\n";
 }
 
 void cmdPass(Server &serv, Client &client, const Message &message)
 {
-    if (message.params.empty())
-        assembleResponse(client, ERR_PASSWDMISMATCH, "", "Wrong password");
-    if (serv.getPassword() != message.params[0])
-    {
-        assembleResponse(client, ERR_PASSWDMISMATCH, message.params[0], "Wrong password");
-        return;
-    }
-    client.validatePassword();
+	if (message.params.empty())
+		assembleResponse(client, ERR_PASSWDMISMATCH, "", "Wrong password");
+	if (serv.getPassword() != message.params[0])
+	{
+		assembleResponse(client, ERR_PASSWDMISMATCH, message.params[0], "Wrong password");
+		return;
+	}
+	client.validatePassword();
 }
 
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
-    (void)serv;
-    if (message.params.empty())
-    {
-        assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null username isn't a parameter");
-        return;
-    }
+	(void)serv;
+	if (message.params.empty())
+	{
+		assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null username isn't a parameter");
+		return;
+	}
 
+    if (checkFormat(message.params[0]))
+	{
+		assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
+		return;
+	}
+
+	if (checkClientUserName(message.params[0], serv))
+	{
+		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
+		return;
+	}
+    client.setUserName(message.params[0]);
+	std::cout << "Username set to " << message.params[0] << "\n";
 }
 
-void cmdTopic(Server &serv, Client &client, const Message &message)
-{
-
-    // if(!serv.isChannel(message.params[0]))
-    // {
-    //     assembleResponse(client, ERR_NOSUCHCHANNEL, message.cmd, "No such channel");
-    //     return;
-    // }
-    // if(!serv.searchChannel(message.params[0]).isAMember(&client))
-    // {
-    //     assembleResponse(client, ERR_NOTONCHANNEL, message.cmd, "You're not on that channel");
-    //     return;
-    // }
-    // if(serv.searchChannel(message.params[0]).setTopic(message.params[1], &client))
-    // {
-    //     assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "You're not channel operator");
-    //     return;
-    // }
-    // else
-    // {
-    //     std::ostringstream line;
-    //     line << ':' << nickOrStar(client) << " " << message.cmd << " " << message.params[0] << " :" << message.params[1];
-    //     sendResponse(client, line.str());
-    //     return;
-    // }
-    // To be see
-    // ERR_NOCHANMODES
-}
+//void cmdTopic(Server &serv, Client &client, const Message &message)
+//{
+	// if(!serv.isChannel(message.params[0]))
+	// {
+	//     assembleResponse(client, ERR_NOSUCHCHANNEL, message.cmd, "No such channel");
+	//     return;
+	// }
+	// if(!serv.searchChannel(message.params[0]).isAMember(&client))
+	// {
+	//     assembleResponse(client, ERR_NOTONCHANNEL, message.cmd, "You're not on that channel");
+	//     return;
+	// }
+	// if(serv.searchChannel(message.params[0]).setTopic(message.params[1], &client))
+	// {
+	//     assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "You're not channel operator");
+	//     return;
+	// }
+	// else
+	// {
+	//     std::ostringstream line;
+	//     line << ':' << nickOrStar(client) << " " << message.cmd << " " << message.params[0] << " :" << message.params[1];
+	//     sendResponse(client, line.str());
+	//     return;
+	// }
+	// To be see
+	// ERR_NOCHANMODES
+//}
 // void cmdPing(Server &serv, Client &client, const Message &message)
 // {
 
 // }
-//void cmdInvite(Server &serv, Client &client, const Message &message)
-//{
 
-    //ERR_NOSUCHNICK
-    //le mec n'existe pas
-
-    //ERR_NOTONCHANNEL
-    //l'inviteur n'appartient pas au channel
+void cmdInvite(Server &serv, Client &client, const Message &message)
+{
+	if (!serv.isAClient(message.params[0]))
+	{
+		assembleResponse(client, ERR_NOSUCHNICK, message.params[0], "No such nick/channel");
+		return;
+	}
+	Channel * chan = serv.searchChannel(message.params[1]);
+	if (chan == NULL)
+	{
+		assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[1], "No such channel");
+		return ;
+	}
+	int error = 0;
+	Client  *invited = serv.findClientByNickname(message.params[0])->second;
+	error = chan->invite(&client, invited);
+	switch (error)
+	{
+		case 3:
+			assembleResponse(client, ERR_USERONCHANNEL, message.params[0] + " " + message.params[1], "is already on channel");
+			return;
+		case 1:
+			assembleResponse(client, ERR_NOTONCHANNEL, message.params[1], "You're not on that channel");
+			return;
+		case 2:
+			assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.params[1], "You're not channel operator");
+			return;
+		case 0:
+			assembleResponse(client, RPL_INVITING, message.params[0] + " " + message.params[1], "");
+			sendResponse(*invited, ":" + client.getNickName() + "!" + client.getUserName() + "@localhost INVITE " + message.params[0] + " " + message.params[1]);
+			return;
+	}
+}
 
 void cmdJoin(Server &serv, Client &client, const Message &message)
 {
@@ -238,14 +283,6 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     assembleResponse(client, RPL_ENDOFNAMES, chan->getChannelName(), "End of /NAMES list");
 }
 
-// void cmdKick(Server &serv, Client &client, const Message &message)
-// {
-
-// }
-// void cmdQuit(Server &serv, Client &client, const Message &message)
-// {
-
-// }
 // void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 // {
 

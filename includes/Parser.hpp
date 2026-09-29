@@ -12,3 +12,4 @@ std::string upperCase(std::string buffer);
 std::string nickOrStar(const Client &client);
 bool checkClientNickName(const std::string &msg, Server &serv);
 bool checkClientUserName(const std::string &msg, Server &serv);
+std::vector<std::string> splitWithComma(std::string input);

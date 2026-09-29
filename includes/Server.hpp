@@ -28,13 +28,13 @@ class Server
 		void	deleteClient(Client *client);
 		std::map<int, Client*>::iterator	findClientByNickname( std::string nickname);
 		bool	isAClient(std::string nickname);
-		void	receiveMess(struct pollfd &pollFd);
+		bool	receiveMess(struct pollfd &pollFd);
 		void	callCommand(std::string &buffer, Client* client);
 		//Channel
-		Channel*	Server::addChannel( const std::string &channelName );
+		Channel*	addChannel( const std::string &channelName );
 		void	printChannels( void );
 		// int		isChannel( std::string channelName);
-		Channel* Server::searchChannel(const std::string &channelName);
+		Channel* 	searchChannel(const std::string &channelName);
 		void	deleteFromAllTheChannels( Client *client);
 
 
