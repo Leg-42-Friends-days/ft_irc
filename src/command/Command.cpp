@@ -142,6 +142,24 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 	// 4 vrai nom
 	// donc un Client doit avoir un true name, le type de mode et le 3eme parametre sera toujours * 
 
+	if (!client.getUserName().empty())
+	{
+		assembleResponse(client, ERR_ALREADYREGISTRED, "", "already registered");
+		return;
+	}
+	// for (int i = 0; i < 3; i++)
+	// {
+	// 	if (message.params[i].empty())
+	// 	{
+	// 		ca aussi a voir avec les autres
+	// 	}
+	// }
+	if (message.params[2] != "*")
+	{
+		// Erreur a voir avec Julio
+		// assembleResponse(client, , message.params[2], "Must be *");
+    	return;
+	}
 	if (checkClientUserName(message.params[0], serv))
 	{
 		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
