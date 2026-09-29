@@ -8,7 +8,7 @@ Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _invit
 	this->_channelName = channelName;
 }
 
-bool	Channel::isEmpty( void )
+bool	Channel::isEmpty( void ) const
 {
 	if (this->_members.empty())
 		return (1);
@@ -16,20 +16,9 @@ bool	Channel::isEmpty( void )
 		return (0);
 }
 
-int	Channel::addMember( Client *client)
+void	Channel::addMember( Client *client)
 {
-	if (this->_nbMaxOfClients != 0)
-	{
-		if (this->_members.size() == this->_nbMaxOfClients)
-			return (1);
-	}
-	if (this->_inviteOnly == 1)
-	{
-		if (!this->isInvited(client))
-			return (2);
-	}
 	this->_members.insert(std::pair<int, Client*>(client->getFdClient(), client));
-	return (0);
 }
 
 void	Channel::printChannelMembers( void )
@@ -60,12 +49,10 @@ bool	Channel::removeMember( Client *client)
 	}
 }
 
-bool	Channel::isAMember( Client *client)
+bool	Channel::isAMember( Client *client) const
 {
-	std::map<int, Client*>::iterator	it;
-	std::map<int, Client*>::iterator	it_end;
-	it_end = this->_members.end();
-	it = this->_members.find(client->getFdClient());
+	std::map<int, Client*>::const_iterator	it = this->_members.find(client->getFdClient());
+	std::map<int, Client*>::const_iterator	it_end = this->_members.end();
 
 	if (it == it_end)
 		return (0);
@@ -102,23 +89,19 @@ void	Channel::printChannelOperators( void )
 
 bool	Channel::isOperator( Client *client) const
 {
-	std::map<int, Client*>::iterator	it;
-	std::map<int, Client*>::iterator	it_end;
-	it_end = this->_operators.end();
-	it = this->_operators.find(client->getFdClient());
-	
+	std::map<int, Client*>::const_iterator	it = this->_operators.find(client->getFdClient());
+	std::map<int, Client*>::const_iterator	it_end = this->_operators.end();
+
 	if (it == it_end)
 		return (0);
 	else
 		return (1);
 }
 
-bool	Channel::isInvited( Client *client)
+bool	Channel::isInvited( Client *client) const
 {
-	std::map<int, Client*>::iterator	it;
-	std::map<int, Client*>::iterator	it_end;
-	it_end = this->_invited.end();
-	it = this->_invited.find(client->getFdClient());
+	std::map<int, Client*>::const_iterator	it = this->_invited.end();
+	std::map<int, Client*>::const_iterator	it_end = this->_invited.find(client->getFdClient());
 
 	if (it == it_end)
 		return (0);
@@ -161,8 +144,6 @@ bool	Channel::setTopic(const std::string &topic, Client *Client)
 
 const std::string	&Channel::getTopic( void )
 {
-	if(this->_topic.empty())
-		return NULL;
 	return this->_topic;
 }
 
@@ -174,7 +155,7 @@ int	Channel::invite(Client *inviter, Client *guest)
 	{
 		if (!this->isOperator(inviter))
 			return (2);
-	}	
+	}
 	if (this->isAMember(guest))
 		return (3);
 	if (!this->isInvited(guest))
@@ -206,7 +187,7 @@ void	Channel::setInviteOnly( bool yesno )
 		this->_inviteOnly = 0;
 }
 
-bool	Channel::isInviteOnly( void )
+bool	Channel::isInviteOnly( void ) const
 {
 	if (this->_inviteOnly == 1)
 		return (1);
@@ -236,7 +217,7 @@ bool	Channel::setPassword(const std::string &password, bool yesno)
 	return (1);
 }
 
-bool	Channel::isPasswordSet( void )
+bool	Channel::isPasswordSet( void ) const
 {
 	if (this->_password == "")
 		return (0);
@@ -258,25 +239,25 @@ bool	Channel::setMaxOfClients(const unsigned int &nb, bool yesno)
 	return (0);
 }
 
-void	Channel::sendToAllMembers(const std::string &message)
-{
-	size_t	i = 0;
-	while (i < this->_members.size())
-	{
-		send(this->_members[i]->getFdClient(), message.c_str(), message.size(), 0);
-		i++;
-	}
-}
+// void	Channel::sendToAllMembers(const std::string &message)
+// {
+// 	size_t	i = 0;
+// 	while (i < this->_members.size())
+// 	{
+// 		send(this->_members[i]->getFdClient(), message.c_str(), message.size(), 0);
+// 		i++;
+// 	}
+// }
 
-void	Channel::sendToAllOperators(const std::string &message)
-{
-	size_t	i = 0;
-	while (i < this->_operators.size())
-	{
-		send(this->_operators[i]->getFdClient(), message.c_str(), message.size(), 0);
-		i++;
-	}
-}
+// void	Channel::sendToAllOperators(const std::string &message)
+// {
+// 	size_t	i = 0;
+// 	while (i < this->_operators.size())
+// 	{
+// 		send(this->_operators[i]->getFdClient(), message.c_str(), message.size(), 0);
+// 		i++;
+// 	}
+// }
 
 void Channel::broadcast(const std::string &out, const Client *except) const
 {
@@ -291,7 +272,7 @@ void Channel::broadcast(const std::string &out, const Client *except) const
 	}
 }
 
-std::string Channel::listMembers() const
+std::string Channel::listMembers( void ) const
 {
 	std::map<int, Client*>::const_iterator	it = _members.begin();
 	std::map<int, Client*>::const_iterator	it_end = _members.end();
@@ -307,4 +288,19 @@ std::string Channel::listMembers() const
 		it++;
 	}
 	return list;
+}
+
+const std::string& Channel::getChannelName( void ) const
+{
+	return this->_channelName;
+}
+
+bool Channel::isFull() const
+{
+	if (this->_nbMaxOfClients != 0)
+	{
+		if (this->_members.size() >= this->_nbMaxOfClients)
+			return (1);
+	}
+	return(0);
 }

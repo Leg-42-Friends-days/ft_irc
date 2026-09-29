@@ -13,8 +13,8 @@ static const CmdInfo cmdInfo[] = {
 	// {"PING", cmdPing, 0, false}, // 409 gere par handler
 	{"INVITE", cmdInvite, 2, true},
 	//{"JOIN", cmdJoin, 1, true},
-	{"KICK", cmdKick, 2, true},
-	{"QUIT", cmdQuit, 0, false}, // parametres optionnels
+	// {"KICK", cmdKick, 2, true},
+	// {"QUIT", cmdQuit, 0, false}, // parametres optionnels
 	// {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
 	// {"MODE", cmdMode, 1, true},
 	// // commande bonus
@@ -64,13 +64,6 @@ void dispatcher(Server &serv, Client &client, const Message &message)
     // appel du handler
     found->ft(serv, client, message);
 }
-
-void sendResponse(const Client &client, std::string line)
-{
-	line = line + "\r\n";
-	send(client.getFdClient(), line.c_str(), line.size(), 0);
-}
-
 
 void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
 {
@@ -238,25 +231,25 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     else
     {
         // Verifier si channel plein
-        if(!chan->spaceStatus())
+        if(!chan->isFull())
         {
-            assembleResponse(client, ERR_CHANNELISFULL, message.params[0], "Channel is full");
+            assembleResponse(client, ERR_CHANNELISFULL, chan->getChannelName(), "Channel is full");
             return;
         }
         // Verifier si invite-only et non invite
-        if(chan->onlyInvite() && !chan->getInviteStatus(&client))
+        if(chan->isInviteOnly() && !chan->isInvited(&client))
         {
-            assembleResponse(client, ERR_INVITEONLYCHAN, message.params[0], "Channel is set on invited only");
+            assembleResponse(client, ERR_INVITEONLYCHAN, chan->getChannelName(), "Channel is set on invited only");
             return;
         }
-        if(chan->keyStatus())
+        if(chan->isPasswordSet())
         {
             std::string key;
             if(message.params.size() > 1)
                 key = message.params[1];
             if(!chan->checkpassword(key))
             {
-                assembleResponse(client, ERR_BADCHANNELKEY, message.params[0], "Cannot join the channel (wrong keys)");
+                assembleResponse(client, ERR_BADCHANNELKEY, chan->getChannelName(), "Cannot join the channel (wrong keys)");
                return;
             }
         }
@@ -265,7 +258,7 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     chan->addMember(&client);
 
     // Retirer invitation si elle existe
-    chan->withdrawInvite(client);
+    chan->removeInvited(&client);
 
     // Diffuser :nick!user@host JOIN #channelName a tous les membres du channel
     std::string out = ":" + client.prefix() + " JOIN " + chan->getChannelName();
@@ -273,9 +266,9 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
 
     // Topic
     if(chan->getTopic().empty())
-         assembleResponse(client, RPL_NOTOPIC, message.params[0], "No Topic is set");
+         assembleResponse(client, RPL_NOTOPIC, chan->getChannelName(), "No Topic is set");
     else
-         assembleResponse(client, RPL_TOPIC, message.params[0],chan->getTopic());
+         assembleResponse(client, RPL_TOPIC, chan->getChannelName(),chan->getTopic());
 
     // Liste des membres
     std::string param = "= " + chan->getChannelName();

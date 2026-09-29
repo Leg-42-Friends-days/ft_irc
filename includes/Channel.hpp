@@ -19,38 +19,42 @@ class Channel
 		Channel( void );
 	public:
 		Channel(std::string channelName);
-		bool	isEmpty( void );
+		bool	isEmpty( void ) const;
 		// members
-		int		addMember( Client *client);
+		void	addMember( Client *client);
 		bool	removeMember( Client *client);
 		void	printChannelMembers( void );
-		bool	isAMember( Client *client);
+		bool	isAMember( Client *client) const;
 		//operators
 		void	addOperator( Client *client);
 		void	removeOperators( Client *client);
 		void	printChannelOperators( void );
 		bool	isOperator( Client *client) const;
 		//invited
-		bool	isInvited( Client *client);
+		bool	isInvited( Client *client) const;
 		int		invite(Client *inviter, Client *guest);
 		int		addInvite ( Client *client );
 		void	removeInvited( Client *client );
-		
+
 		bool	setTopic(const std::string &topic, Client *Client);
 		const std::string	&getTopic( void );
 		bool	checkpassword(const std::string &password);
 		//modes
 		void	setTopicChangeOperatorsOnly( bool yesno );
 		void	setInviteOnly( bool yesno );
-		bool	isInviteOnly( void );
+		bool	isInviteOnly( void ) const;
 		bool	setPassword(const std::string &password, bool yesno);
-		bool	isPasswordSet( void );
+		bool	isPasswordSet( void ) const;
 		bool	setMaxOfClients(const unsigned int &nb, bool yesno);
 
-		void	sendToAllMembers(const std::string &message);
-		void	sendToAllOperators(const std::string &message);
+		// void	sendToAllMembers(const std::string &message);
+		// void	sendToAllOperators(const std::string &message);
+		// utiliser broadcast juste
 
 		// new (Julio)
 		void	broadcast(const std::string &out, const Client *except) const;
-		std::string listMembers() const;
+		std::string listMembers( void ) const;
+		const std::string &getChannelName( void ) const;
+		bool isFull() const;
+
 };

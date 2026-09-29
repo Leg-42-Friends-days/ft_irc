@@ -186,19 +186,19 @@ void	Server::deleteFromAllTheChannels( Client *client)
 void Server::callCommand(std::string &buffer, Client* client)
 {
 	std::string line = trim(buffer);
-	
+
 	while (line[0] == ':')
 	line = checkPrefix(line);
 	std::stringstream stream(line);
-	
+
 	Message msg;
 	std::string content;
-	
+
 	stream >> msg.cmd;
-	
+
 	while (stream >> content)
 	msg.params.push_back(content);
-	
+
 	dispatcher(*this, *client, msg);
 };
 
@@ -219,7 +219,7 @@ bool	Server::receiveMess( struct pollfd &pollFd)
 	else
 	{
 		buffer[message] = '\0';
-		
+
 		std::string inputBuffer = buffer;
 		callCommand(inputBuffer, it->second);
 		if (this->_clientRepertory.find(fd) == this->_clientRepertory.end())
@@ -228,7 +228,7 @@ bool	Server::receiveMess( struct pollfd &pollFd)
 		return	false;
 	}
 }
-	
+
 void	Server::printChannels( void )
 {
 	std::map<std::string, Channel*>::iterator	it;
@@ -240,17 +240,6 @@ void	Server::printChannels( void )
 		std::cout << it->first << std::endl;
 		it ++;
 	}
-}
-
-std::string toLower(std::string str)
-{
-	size_t i = 0;
-	while(i < str.size())
-	{
-		str[i] = tolower(static_cast<unsigned char>(str[i]));
-		i++;
-	}
-	return str;
 }
 
 Channel*	Server::addChannel( const std::string &channelName )
