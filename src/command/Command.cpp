@@ -146,33 +146,46 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 	std::cout << "Username set to " << message.params[0] << "\n";
 }
 
-//void cmdTopic(Server &serv, Client &client, const Message &message)
-//{
-	// if(!serv.isChannel(message.params[0]))
-	// {
-	//     assembleResponse(client, ERR_NOSUCHCHANNEL, message.cmd, "No such channel");
-	//     return;
-	// }
-	// if(!serv.searchChannel(message.params[0]).isAMember(&client))
-	// {
-	//     assembleResponse(client, ERR_NOTONCHANNEL, message.cmd, "You're not on that channel");
-	//     return;
-	// }
-	// if(serv.searchChannel(message.params[0]).setTopic(message.params[1], &client))
-	// {
-	//     assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "You're not channel operator");
-	//     return;
-	// }
-	// else
-	// {
-	//     std::ostringstream line;
-	//     line << ':' << nickOrStar(client) << " " << message.cmd << " " << message.params[0] << " :" << message.params[1];
-	//     sendResponse(client, line.str());
-	//     return;
-	// }
-	// To be see
-	// ERR_NOCHANMODES
-//}
+void cmdTopic(Server &serv, Client &client, const Message &message)
+{
+	Channel * chan = serv.searchChannel(message.params[0]);
+    if(chan == NULL)
+    {
+	    assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[0], "No such channel");
+	    return;
+    }
+
+	if(!chan->isAMember(&client))
+	{
+	    assembleResponse(client, ERR_NOTONCHANNEL, chan->getChannelName(), "You're not on that channel");
+	    return;
+	}
+
+	if(message.params.size() == 1)
+	{
+		if(chan->getTopic().empty())
+		{
+        	assembleResponse(client, RPL_NOTOPIC, chan->getChannelName(), "No Topic is set");
+			return;
+		}
+    	else
+		{
+        	assembleResponse(client, RPL_TOPIC, chan->getChannelName(),chan->getTopic());
+			return;
+		}
+	}
+
+	if(chan->isTopicOpOnly() && !chan->isOperator(&client))
+	{
+		assembleResponse(client, ERR_CHANOPRIVSNEEDED, chan->getChannelName(), "You're not channel operator");
+		return;
+	}
+	chan->setTopic(message.params[1]);
+	std::ostringstream line;
+	line << ':' << client.prefix() << " TOPIC " << chan->getChannelName() << " :" << message.params[1];
+	chan->broadcast(line.str(), NULL);
+}
+
 // void cmdPing(Server &serv, Client &client, const Message &message)
 // {
 

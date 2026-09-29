@@ -24,7 +24,7 @@ void    assembleResponse(const Client &client, const char * code, const std::str
 void cmdNick(Server &serv, Client &client, const Message &message);
 void cmdPass(Server &serv, Client &client, const Message &message);
 void cmdUser(Server &serv, Client &client, const Message &message);
-//void cmdTopic(Server &serv, Client &client, const Message &message);
+void cmdTopic(Server &serv, Client &client, const Message &message);
 // void cmdPing(Server &serv, Client &client, const Message &message);
 void cmdInvite(Server &serv, Client &client, const Message &message);
 // void cmdJoin(Server &serv, Client &client, const Message &message);
