@@ -231,26 +231,6 @@ bool	Channel::setMaxOfClients(const unsigned int &nb, bool yesno)
 	return (0);
 }
 
-// void	Channel::sendToAllMembers(const std::string &message)
-// {
-// 	size_t	i = 0;
-// 	while (i < this->_members.size())
-// 	{
-// 		send(this->_members[i]->getFdClient(), message.c_str(), message.size(), 0);
-// 		i++;
-// 	}
-// }
-
-// void	Channel::sendToAllOperators(const std::string &message)
-// {
-// 	size_t	i = 0;
-// 	while (i < this->_operators.size())
-// 	{
-// 		send(this->_operators[i]->getFdClient(), message.c_str(), message.size(), 0);
-// 		i++;
-// 	}
-// }
-
 void Channel::broadcast(const std::string &out, const Client *except) const
 {
 	std::map<int, Client*>::const_iterator	it = _members.begin();

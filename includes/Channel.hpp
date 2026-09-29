@@ -20,11 +20,16 @@ class Channel
 	public:
 		Channel(std::string channelName);
 		bool	isEmpty( void ) const;
+		bool	checkpassword(const std::string &password);
+		const std::string &getChannelName( void ) const;
+		bool isFull() const;
+		bool isTopicOpOnly() const;
 		// members
 		void	addMember( Client *client);
 		bool	removeMember( Client *client);
 		void	printChannelMembers( void );
 		bool	isAMember( Client *client) const;
+		std::string listMembers( void ) const;
 		//operators
 		void	addOperator( Client *client);
 		void	removeOperators( Client *client);
@@ -35,10 +40,9 @@ class Channel
 		int		invite(Client *inviter, Client *guest);
 		int		addInvite ( Client *client );
 		void	removeInvited( Client *client );
-
+		// topic
 		void	setTopic(const std::string &topic);
 		const	std::string	&getTopic( void );
-		bool	checkpassword(const std::string &password);
 		//modes
 		void	setTopicChangeOperatorsOnly( bool yesno );
 		void	setInviteOnly( bool yesno );
@@ -46,16 +50,6 @@ class Channel
 		bool	setPassword(const std::string &password, bool yesno);
 		bool	isPasswordSet( void ) const;
 		bool	setMaxOfClients(const unsigned int &nb, bool yesno);
-
-		// void	sendToAllMembers(const std::string &message);
-		// void	sendToAllOperators(const std::string &message);
-		// utiliser broadcast juste
-
-		// new (Julio)
+		// diffusion
 		void	broadcast(const std::string &out, const Client *except) const;
-		std::string listMembers( void ) const;
-		const std::string &getChannelName( void ) const;
-		bool isFull() const;
-		bool isTopicOpOnly() const;
-
 };
