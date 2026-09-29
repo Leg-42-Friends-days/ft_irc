@@ -15,7 +15,7 @@ static const CmdInfo cmdInfo[] = {
 	{"KICK", cmdKick, 2, true},
 	{"QUIT", cmdQuit, 0, false}, // parametres optionnels
 	// {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
-	// {"MODE", cmdMode, 1, true},
+	{"MODE", cmdMode, 1, false},
 	// // commande bonus
 	// {"LIST", cmdList, 0, true}, // aucun parametre obligatoire
 	// {"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
@@ -342,10 +342,69 @@ void cmdQuit(Server &serv, Client &client, const Message &message)
 // {
 
 // }
-// void cmdMode(Server &serv, Client &client, const Message &message)
-// {
+void cmdMode(Server &serv, Client &client, const Message &message)
+{
+	(void)serv;
+	(void)client;
+	std::string	mode = message.params[1];
+	std::string	channel = message.params[0];
+	(void)channel;
+	size_t	i_params = 2;
+	(void)i_params;
+	std::string::iterator	it = mode.begin();
+	char	oper = '\0';
+	(void)oper;
+	std::string	modes = "itkol";
+	while (it != mode.end())
+	{
+		if (*it == '-' || *it == '+')
+		{
+			oper = *it;
+			it++;
+			continue;
+		}
+		if (modes.find(*it) == std::string::npos)
+		{
+			std::cout << "pas une option" << std::endl;
+			break;
+		}
+		if (modes.find(*it) != std::string::npos && oper == '\0')
+		{
+			std::cout << "pas d'operateur" << std::endl;
+			break;
+		}
+		std::cout << "tout est ok" << std::endl;
+		
+		//std::cout << *it << std::endl;
+		it++;
+	}
+	/* -i = set/remove invite only 
+	-t = set/remove restrictions of TOPIC command to channel operators 
+	-k = password
+	-o = be an operator or not
+	-l = user limit 
 
-// }
+	//ERR_NEEDMOREPARAMS
+	si la fonction attend un param et qu'il n'est pas la
+	//un param obligatoire
+	ERR_KEYSET
+	//quand le password du channel a deja ete set
+	//ERR_NOCHANMODES
+	//quand on essaye de set un mode alors que le channel ne supporte pas les modes, je ne pense pas que cela nous concerne
+
+	ERR_CHANOPRIVSNEEDED
+	//n'est pas operator
+    ERR_USERNOTINCHANNEL
+	// le target user n'est pas sur le channel
+
+	ERR_UNKNOWNMODE
+	//le mode est inconnu au bataillon
+
+	RPL_CHANNELMODEIS
+	//renvoi les modes actuels d'un channel quand on fait par exemple MODE #42 
+	// ca revoit par exemple :irc.example.com 324 Bob #42 +nt */
+}
+
 // void cmdList(Server &serv, Client &client, const Message &message)
 // {
 

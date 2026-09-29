@@ -44,6 +44,7 @@ const char * const 	ERR_USERONCHANNEL = "443"; // la cible y est déjà (INVITE)
 const char * const 	ERR_NOTREGISTERED = "451";
 const char * const 	ERR_ALREADYREGISTRED = "462";
 const char * const 	ERR_PASSWDMISMATCH = "464";
+const char * const  ERR_KEYSET = "467";
 
 // Erreurs liees aux modes de canal
 const char * const 	ERR_CHANNELISFULL = "471"; // JOIN
