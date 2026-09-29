@@ -4,6 +4,7 @@
 #include "../../includes/Message.hpp"
 #include "../../includes/Parser.hpp"
 #include "../../includes/Command.hpp"
+#include "../../includes/Utils.hpp"
 
 // Constructeur
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])

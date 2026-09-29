@@ -6,8 +6,9 @@ SRC =	src/main.cpp \
 		src/client/Client.cpp \
 		src/Channel/Channel.cpp \
 		src/parser.cpp \
-		src/command/Command.cpp
-		
+		src/command/Command.cpp \
+		src/utils.cpp
+
 OBJ_DIR = obj/
 OBJ = $(addprefix $(OBJ_DIR), $(SRC:.cpp=.o))
 
@@ -16,7 +17,7 @@ all: $(NAME)
 $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -c $< -o $@
-	
+
 $(NAME): $(OBJ)
 	@$(CC) $(OBJ) $(CFLAGS) -o $(NAME)
 	@echo "✅ $(NAME) ready !"

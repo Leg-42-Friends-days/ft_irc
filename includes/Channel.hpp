@@ -29,7 +29,7 @@ class Channel
 		void	addOperator( Client *client);
 		void	removeOperators( Client *client);
 		void	printChannelOperators( void );
-		bool	isOperator( Client *client);
+		bool	isOperator( Client *client) const;
 		//invited
 		bool	isInvited( Client *client);
 		int		invite(Client *inviter, Client *guest);
@@ -49,4 +49,8 @@ class Channel
 
 		void	sendToAllMembers(const std::string &message);
 		void	sendToAllOperators(const std::string &message);
+
+		// new (Julio)
+		void	broadcast(const std::string &out, const Client *except) const;
+		std::string listMembers() const;
 };
