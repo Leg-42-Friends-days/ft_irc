@@ -47,7 +47,6 @@ void	Channel::printChannelMembers( void )
 
 bool	Channel::removeMember( Client *client)
 {
-	std::cout << "Retrait du membre " << client->getFdClient() << " au channel " << this->_channelName << std::endl;
 	std::map<int, Client*>::iterator	it;
 	it = this->_members.find(client->getFdClient());
 	if (it == this->_members.end())
