@@ -27,13 +27,13 @@ class Channel
 		// members
 		void	addMember( Client *client);
 		bool	removeMember( Client *client);
-		void	printChannelMembers( void );
+		// void	printChannelMembers( void );
 		bool	isAMember( Client *client) const;
 		std::string listMembers( void ) const;
 		//operators
 		void	addOperator( Client *client);
 		void	removeOperators( Client *client);
-		void	printChannelOperators( void );
+		// void	printChannelOperators( void );
 		bool	isOperator( Client *client) const;
 		//invited
 		bool	isInvited( Client *client) const;
