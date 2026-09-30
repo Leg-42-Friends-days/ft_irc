@@ -11,6 +11,13 @@ Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
 {
 }
 
+// Destructeur
+Server::~Server(void)
+{
+	// tout destroy, chaque fd, delete chaque client et chaque canal, ferme le socket decoute
+	// message : ERROR :Server shutting down
+}
+
 // Fonctions GET
 const std::string    &Server::getPortIP( void )
 {

@@ -17,6 +17,7 @@ class Server
 
 	public:
 		Server(char **av);
+		~Server(void);
 		const std::string	&getPortIP( void );
 		const int	&getServFd( void );
 		std::vector<struct pollfd> &getpollFds( void );

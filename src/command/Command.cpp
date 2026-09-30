@@ -17,11 +17,27 @@ static const CmdInfo cmdInfo[] = {
 	{"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
 	// {"MODE", cmdMode, 1, true},
 	// // commande bonus
-	// {"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
+	{"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
 };
 
-std::string nickOrStar(const Client &client);
-void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text);
+void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
+{
+	std::ostringstream line;
+	line << ':' << SERVER_NAME << " " << code << " " << nickOrStar(client);
+	if(!param.empty())
+		line <<  " " << param;
+	if(!text.empty())
+		line <<  " :" << text;
+	sendResponse(client, line.str());
+}
+
+void sendWelcome(const Client &client)
+{
+	assembleResponse(client, RPL_WELCOME, "", "Welcome to IRC Network " + client.prefix());
+	assembleResponse(client, RPL_YOURHOST, "", "Your host is Ici Rien ne Crash, running version v1");
+	assembleResponse(client, RPL_CREATED, "", "This server was created : 30th september 2026");
+	assembleResponse(client, RPL_MYINFO, std::string(SERVER_NAME) + "v1 io itkol", "");
+}
 
 void dispatcher(Server &serv, Client &client, const Message &message)
 {
@@ -63,29 +79,9 @@ void dispatcher(Server &serv, Client &client, const Message &message)
     found->ft(serv, client, message);
 }
 
-void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
-{
-	std::ostringstream line;
-	line << ':' << SERVER_NAME << " " << code << " " << nickOrStar(client);
-	if(!param.empty())
-		line <<  " " << param;
-	if(!text.empty())
-		line <<  " :" << text;
-	sendResponse(client, line.str());
-}
-
-bool checkFormat(const std::string &msg)
-{
-	for (size_t i = 0; i < msg.length(); i++)
-	{
-		if (std::ispunct(msg[i]))
-			return (true);
-	}
-	return (false);
-}
-
 void cmdNick(Server &serv, Client &client, const Message &message)
 {
+	bool isAlreadyRegistered = client.isRegistered();
 	if (message.params.empty())
 	{
 		assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null Nickname isn't a parameter");
@@ -103,45 +99,61 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use");
 		return;
 	}
-
+	std::string oldPrefix = client.prefix();
 	client.setNickName(message.params[0]);
-	std::cout << "Nickname set to " << message.params[0] << "\n";
+	if(!isAlreadyRegistered && client.isRegistered())
+	{
+		sendWelcome(client);
+		return;
+	}
+	if(isAlreadyRegistered)
+	{
+		std::string line = ":" + oldPrefix + " NICK :" + client.getNickName();
+		// doit envoyer dans tous les channels ou le client est ? + A lauteur lui meme
+		sendResponse(client, line);
+		return;
+	}
 }
 
 void cmdPass(Server &serv, Client &client, const Message &message)
 {
+	if(client.isRegistered())
+	{
+		assembleResponse(client, ERR_ALREADYREGISTRED, "", "You are already register");
+		return;
+	}
 	if (message.params.empty())
+	{
 		assembleResponse(client, ERR_PASSWDMISMATCH, "", "Wrong password");
+		return;
+	}
 	if (serv.getPassword() != message.params[0])
 	{
-		assembleResponse(client, ERR_PASSWDMISMATCH, message.params[0], "Wrong password");
+		assembleResponse(client, ERR_PASSWDMISMATCH, "", "Wrong password");
 		return;
 	}
 	client.validatePassword();
+	if(client.isRegistered())
+	{
+		sendWelcome(client);
+		return;
+	}
 }
 
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
 	(void)serv;
-	if (message.params.empty())
+	if(client.isRegistered())
 	{
-		assembleResponse(client, ERR_NONICKNAMEGIVEN, "", "Null username isn't a parameter");
-		return;
-	}
-
-    if (checkFormat(message.params[0]))
-	{
-		assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
-		return;
-	}
-
-	if (checkClientUserName(message.params[0], serv))
-	{
-		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
+		assembleResponse(client, ERR_ALREADYREGISTRED, "", "You are already register");
 		return;
 	}
     client.setUserName(message.params[0]);
-	std::cout << "Username set to " << message.params[0] << "\n";
+	if(client.isRegistered())
+	{
+		sendWelcome(client);
+		return;
+	}
 }
 
 void cmdTopic(Server &serv, Client &client, const Message &message)
@@ -326,7 +338,28 @@ void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 // {
 
 // }
-// void cmdNotice(Server &serv, Client &client, const Message &message)
-// {
 
-// }
+void cmdNotice(Server &serv, Client &client, const Message &message)
+{
+	if(message.params.size() == 0)
+		return;
+	if(message.params.size() < 2 || message.params[1].empty())
+		return;
+	if(message.params[0][0] == '#')
+	{
+		Channel * chan = serv.searchChannel(message.params[0]);
+		if (chan == NULL)
+			return ;
+		if(!chan->isAMember(&client))
+			return ;
+		std::string out = ":" + client.prefix() + " NOTICE " + chan->getChannelName() + " :" + message.params[1];
+		chan->broadcast(out, &client);
+		return;
+	}
+	Client  *receiver = serv.searchClientByNickname(message.params[0]);
+	if (receiver == NULL)
+		return;
+	std::string out = ":" + client.prefix() + " NOTICE " + receiver->getNickName() + " :" + message.params[1];
+	sendResponse(*receiver, out);
+	return;
+}
