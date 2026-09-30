@@ -36,7 +36,7 @@ void sendWelcome(const Client &client)
 	assembleResponse(client, RPL_WELCOME, "", "Welcome to IRC Network " + client.prefix());
 	assembleResponse(client, RPL_YOURHOST, "", "Your host is Ici Rien ne Crash, running version v1");
 	assembleResponse(client, RPL_CREATED, "", "This server was created : 30th september 2026");
-	assembleResponse(client, RPL_MYINFO, std::string(SERVER_NAME) + "v1 io itkol", "");
+	assembleResponse(client, RPL_MYINFO, std::string(SERVER_NAME) + " v1 io itkol", "");
 }
 
 void dispatcher(Server &serv, Client &client, const Message &message)
@@ -109,8 +109,8 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 	if(isAlreadyRegistered)
 	{
 		std::string line = ":" + oldPrefix + " NICK :" + client.getNickName();
-		// doit envoyer dans tous les channels ou le client est ? + A lauteur lui meme
 		sendResponse(client, line);
+		serv.broadcastToMemberInChannels(&client, line);
 		return;
 	}
 }

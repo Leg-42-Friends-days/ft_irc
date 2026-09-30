@@ -21,19 +21,19 @@ void	Channel::addMember( Client *client)
 	this->_members.insert(std::pair<int, Client*>(client->getFdClient(), client));
 }
 
-void	Channel::printChannelMembers( void )
-{
-	std::map<int, Client*>::iterator	it;
-	std::map<int, Client*>::iterator	it_end;
-	it = this->_members.begin();
-	it_end = this->_members.end();
-	std::cout << "Liste des membres du channel " << this->_channelName << " :" << std::endl;
-	while(it != it_end)
-	{
-		std::cout << it->first << std::endl;
-		it ++;
-	}
-}
+// void	Channel::printChannelMembers( void )
+// {
+// 	std::map<int, Client*>::iterator	it;
+// 	std::map<int, Client*>::iterator	it_end;
+// 	it = this->_members.begin();
+// 	it_end = this->_members.end();
+// 	std::cout << "Liste des membres du channel " << this->_channelName << " :" << std::endl;
+// 	while(it != it_end)
+// 	{
+// 		std::cout << it->first << std::endl;
+// 		it ++;
+// 	}
+// }
 
 bool	Channel::removeMember( Client *client)
 {
@@ -73,19 +73,19 @@ void	Channel::removeOperators( Client *client)
 	if (it != this->_operators.end())
 		this->_operators.erase(it);
 }
-void	Channel::printChannelOperators( void )
-{
-	std::map<int, Client*>::iterator	it;
-	std::map<int, Client*>::iterator	it_end;
-	it = this->_operators.begin();
-	it_end = this->_operators.end();
-	std::cout << "Liste des operateurs du channel " << this->_channelName << " :" << std::endl;
-	while(it != it_end)
-	{
-		std::cout << it->first << std::endl;
-		it ++;
-	}
-}
+// void	Channel::printChannelOperators( void )
+// {
+// 	std::map<int, Client*>::iterator	it;
+// 	std::map<int, Client*>::iterator	it_end;
+// 	it = this->_operators.begin();
+// 	it_end = this->_operators.end();
+// 	std::cout << "Liste des operateurs du channel " << this->_channelName << " :" << std::endl;
+// 	while(it != it_end)
+// 	{
+// 		std::cout << it->first << std::endl;
+// 		it ++;
+// 	}
+// }
 
 bool	Channel::isOperator( Client *client) const
 {

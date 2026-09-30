@@ -3,15 +3,6 @@
 #include "../includes/Replies.hpp"
 #include "../includes/Server.hpp"
 
-void 	entryParsing(int &ac, char **av)
-{
-	//parsing de l'input du programme
-	if (ac != 3)
-		throw std::runtime_error("execute : ./ircserv <port> <password>");
-	if (!checkPort(av[1]))
-		throw std::runtime_error("Error : invalid port!");
-}
-
 bool checkPort(const std::string &port)
 {
 	if(port.empty())
@@ -30,6 +21,15 @@ bool checkPort(const std::string &port)
 	if (portValue > 65535)
 			return false;
 	return true;
+}
+
+void 	entryParsing(int &ac, char **av)
+{
+	//parsing de l'input du programme
+	if (ac != 3)
+		throw std::runtime_error("execute : ./ircserv <port> <password>");
+	if (!checkPort(av[1]))
+		throw std::runtime_error("Error : invalid port!");
 }
 
 std::vector<std::string> splitWithComma(std::string input)

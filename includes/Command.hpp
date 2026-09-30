@@ -30,5 +30,5 @@ void cmdJoin(Server &serv, Client &client, const Message &message);
 // void cmdKick(Server &serv, Client &client, const Message &message);
 // void cmdQuit(Server &serv, Client &client, const Message &message);
 void cmdPrivMsg(Server &serv, Client &client, const Message &message);
-void cmdMode(Server &serv, Client &client, const Message &message);
-// void cmdNotice(Server &serv, Client &client, const Message &message);
+// void cmdMode(Server &serv, Client &client, const Message &message);
+void cmdNotice(Server &serv, Client &client, const Message &message);

@@ -203,6 +203,20 @@ void	Server::deleteFromAllTheChannels( Client *client)
 	}
 }
 
+void	Server::broadcastToMemberInChannels(Client *client, const std::string &out)
+{
+	std::map<std::string, Channel*>::iterator	it;
+	std::map<std::string, Channel*>::iterator	it_end;
+	it = this->_lobby.begin();
+	it_end = this->_lobby.end();
+	while (it != it_end)
+	{
+		Channel	*chan = it->second;
+		if (chan->isAMember(client))
+			chan->broadcast(out, client);
+		it++;
+	}
+}
 
 void Server::callCommand(std::string &buffer, Client* client)
 {
