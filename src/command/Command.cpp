@@ -347,34 +347,112 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 	(void)serv;
 	(void)client;
 	std::string	mode = message.params[1];
-	std::string	channel = message.params[0];
-	(void)channel;
+	Channel * chan = serv.searchChannel(message.params[0]);
+	if (chan == NULL)
+	{
+		assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[1], "No such channel");
+		return ;
+	}
+	//verifier si le client est un operateur : forcement un pour mode.
 	size_t	i_params = 2;
 	(void)i_params;
 	std::string::iterator	it = mode.begin();
-	char	oper = '\0';
-	(void)oper;
+	char	sign = '\0';
 	std::string	modes = "itkol";
 	while (it != mode.end())
 	{
 		if (*it == '-' || *it == '+')
 		{
-			oper = *it;
+			sign = *it;
 			it++;
 			continue;
 		}
-		if (modes.find(*it) == std::string::npos)
-		{
-			std::cout << "pas une option" << std::endl;
-			break;
-		}
-		if (modes.find(*it) != std::string::npos && oper == '\0')
+		if (modes.find(*it) != std::string::npos && sign == '\0')
 		{
 			std::cout << "pas d'operateur" << std::endl;
 			break;
 		}
-		std::cout << "tout est ok" << std::endl;
-		
+		//std::cout << "tout est ok" << std::endl;
+		switch (*it)
+		{
+			case 'i':
+				if (sign == '+')
+					chan->setInviteOnly(1);
+				if (sign == '-')
+					chan->setInviteOnly(0);
+				break;
+			case 't':
+				if (sign == '+')
+					chan->setTopicChangeOperatorsOnly(1);
+				if (sign == '-')
+					chan->setTopicChangeOperatorsOnly(0);
+				break;
+			case 'k':
+			{
+				if (sign == '+')
+				{
+					if (message.params.begin() + i_params == message.params.end() || message.params[i_params] == "")
+					{
+						std::cout << "erreur parametre" << std::endl;
+						break;
+					}
+					std::string	password = message.params[i_params];
+					chan->setPassword(password, 1);
+					i_params++;
+				}
+				if (sign == '-')
+					chan->setPassword("", 0);
+				break;
+			}
+			case 'o':
+			{
+				if (message.params.begin() + i_params == message.params.end() || message.params[i_params] == "")
+				{
+					std::cout << "erreur parametre" << std::endl;
+					break;
+				}
+				Client  *invited = serv.findClientByNickname(message.params[i_params])->second;
+				i_params++;
+				if (sign == '+')
+				{
+					if (chan->addOperator(invited))
+					{
+						std::cout << "erreur n'est pas membre du channel" << std::endl;
+					}
+				}
+				if (sign == '-')
+				{
+					if (chan->removeOperators(invited))
+					{
+						std::cout << "n'est pas un operateur peut pas enlever" << std::endl;
+					}
+				}
+				break;
+			}
+			case 'l':
+				if (sign == '+')
+				{
+					if (message.params.begin() + i_params == message.params.end() || message.params[i_params] == "")
+					{
+						std::cout << "erreur parametre" << std::endl;
+						break;
+					}
+					unsigned int	nb = atoi(message.params[i_params].c_str());
+					if (nb == 0)
+					{
+						std::cout << "erreur parametre" << std::endl;
+						break;
+					}
+					i_params++;
+						chan->setMaxOfClients(nb, 1);
+				}
+				if (sign == '-')
+					chan->setMaxOfClients(0, 0);
+				break;
+			default :
+				std::cout << "pas une option" << std::endl;
+				break;
+		}
 		//std::cout << *it << std::endl;
 		it++;
 	}

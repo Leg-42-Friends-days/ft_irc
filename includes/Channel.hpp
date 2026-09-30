@@ -26,8 +26,8 @@ class Channel
 		void	printChannelMembers( void );
 		bool	isAMember( Client *client);
 		//operators
-		void	addOperator( Client *client);
-		void	removeOperators( Client *client);
+		bool	addOperator( Client *client);
+		bool	removeOperators( Client *client);
 		void	printChannelOperators( void );
 		bool	isOperator( Client *client);
 		//invited
@@ -43,9 +43,9 @@ class Channel
 		void	setTopicChangeOperatorsOnly( bool yesno );
 		void	setInviteOnly( bool yesno );
 		bool	isInviteOnly( void );
-		bool	setPassword(const std::string &password, bool yesno);
+		void	setPassword(const std::string &password, bool yesno);
 		bool	isPasswordSet( void );
-		bool	setMaxOfClients(const unsigned int &nb, bool yesno);
+		void	setMaxOfClients(const unsigned int &nb, bool yesno);
 
 		void	sendToAllMembers(const std::string &message);
 		void	sendToAllOperators(const std::string &message);

@@ -72,18 +72,24 @@ bool	Channel::isAMember( Client *client)
 		return (1);
 }
 
-void	Channel::addOperator( Client *client)
+bool	Channel::addOperator( Client *client)
 {
-	std::cout << "Ajout de l'operateur " << client->getFdClient() << " au serveur " << this->_channelName << std::endl;
+	if (!this->isAMember(client))
+		return (1);
 	this->_operators.insert(std::pair<int, Client*>(client->getFdClient(), client));
+		return (0);
 }
-void	Channel::removeOperators( Client *client)
+bool	Channel::removeOperators( Client *client)
 {
-	std::cout << "Retrait du membre " << client->getFdClient() << " a la liste des operateurs du channel " << this->_channelName << std::endl;
 	std::map<int, Client*>::iterator	it;
 	it = this->_operators.find(client->getFdClient());
 	if (it != this->_operators.end())
+	{	
 		this->_operators.erase(it);
+		return (0);
+	}
+	else
+		return (1);
 }
 void	Channel::printChannelOperators( void )
 {
@@ -213,26 +219,10 @@ bool	Channel::isInviteOnly( void )
 		return (0);
 }
 
-bool	Channel::setPassword(const std::string &password, bool yesno)
+void	Channel::setPassword(const std::string &password, bool yesno)
 {
-	if (password.empty())
-		return (1);
-	if (yesno)
-	{
-		this->_password = password;
-		return (0);
-	}
-	if (!yesno)
-	{
-		if (this->_password != password)
-			return (1);
-		else
-		{
-			this->_password = password;
-			return (0);
-		}
-	}
-	return (1);
+	(void)yesno;
+	this->_password = password;
 }
 
 bool	Channel::isPasswordSet( void )
@@ -243,18 +233,10 @@ bool	Channel::isPasswordSet( void )
 		return (1);
 }
 
-bool	Channel::setMaxOfClients(const unsigned int &nb, bool yesno)
+void	Channel::setMaxOfClients(const unsigned int &nb, bool yesno)
 {
-	if (nb == 0)
-		return (1);
-	if (yesno == 1)
-		this->_nbMaxOfClients = nb;
-	else
-	{
-		if (this->_nbMaxOfClients != 0)
-			this->_nbMaxOfClients = 0;
-	}
-	return (0);
+	(void)yesno;
+	this->_nbMaxOfClients = nb;
 }
 
 void	Channel::sendToAllMembers(const std::string &message)
