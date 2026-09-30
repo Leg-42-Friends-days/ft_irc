@@ -23,42 +23,42 @@ static const CmdInfo cmdInfo[] = {
 
 std::string nickOrStar(const Client &client);
 void sendResponse(const Client &client, std::string line);
-void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text);
+void assembleResponse(const Client &client, const char *code, const std::string &param, const std::string &text);
 
 void dispatcher(Server &serv, Client &client, const Message &message)
 {
 	// normaliser verbe en majuscule
 	std::string verb = upperCase(message.cmd);
-	if(verb.empty())
+	if (verb.empty())
 		return;
 
 	// parcourir table pour touver ligne correspondante
-	const CmdInfo * found = NULL;
+	const CmdInfo *found = NULL;
 	size_t cmdCount = (sizeof(cmdInfo) / sizeof(cmdInfo[0]));
-	for(size_t i = 0; i < cmdCount; i++)
+	for (size_t i = 0; i < cmdCount; i++)
 	{
-		if(verb == cmdInfo[i].verb)
+		if (verb == cmdInfo[i].verb)
 		{
 			found = &cmdInfo[i];
-			break ;
+			break;
 		}
 	}
 	if (found == NULL)
 	{
-		assembleResponse(client, ERR_UNKNOWNCOMMAND, verb , "Unknown command");
-		return ;
+		assembleResponse(client, ERR_UNKNOWNCOMMAND, verb, "Unknown command");
+		return;
 	}
 
-	if(found->needsRegister && !client.isRegistered())
+	if (found->needsRegister && !client.isRegistered())
 	{
 		assembleResponse(client, ERR_NOTREGISTERED, "", "You have not registered");
-		return ;
+		return;
 	}
 
-	if(message.params.size() < found->minParams)
+	if (message.params.size() < found->minParams)
 	{
 		assembleResponse(client, ERR_NEEDMOREPARAMS, verb, "Not enough parameters");
-		return ;
+		return;
 	}
 
 	// appeler handler
@@ -73,15 +73,14 @@ void sendResponse(const Client &client, std::string line)
 	send(client.getFdClient(), line.c_str(), line.size(), 0);
 }
 
-
-void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
+void assembleResponse(const Client &client, const char *code, const std::string &param, const std::string &text)
 {
 	std::ostringstream line;
 	line << ':' << SERVER_NAME << " " << code << " " << nickOrStar(client);
-	if(!param.empty())
-		line <<  " " << param;
-	if(!text.empty())
-		line <<  " :" << text;
+	if (!param.empty())
+		line << " " << param;
+	if (!text.empty())
+		line << " :" << text;
 	sendResponse(client, line.str());
 }
 
@@ -140,7 +139,7 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 		return;
 	}
 
-    if (checkFormat(message.params[0]))
+	if (checkFormat(message.params[0]))
 	{
 		assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
 		return;
@@ -151,36 +150,36 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
 		return;
 	}
-    client.setUserName(message.params[0]);
+	client.setUserName(message.params[0]);
 	std::cout << "Username set to " << message.params[0] << "\n";
 }
 
-//void cmdTopic(Server &serv, Client &client, const Message &message)
+// void cmdTopic(Server &serv, Client &client, const Message &message)
 //{
-	// if(!serv.isChannel(message.params[0]))
-	// {
-	//     assembleResponse(client, ERR_NOSUCHCHANNEL, message.cmd, "No such channel");
-	//     return;
-	// }
-	// if(!serv.searchChannel(message.params[0]).isAMember(&client))
-	// {
-	//     assembleResponse(client, ERR_NOTONCHANNEL, message.cmd, "You're not on that channel");
-	//     return;
-	// }
-	// if(serv.searchChannel(message.params[0]).setTopic(message.params[1], &client))
-	// {
-	//     assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "You're not channel operator");
-	//     return;
-	// }
-	// else
-	// {
-	//     std::ostringstream line;
-	//     line << ':' << nickOrStar(client) << " " << message.cmd << " " << message.params[0] << " :" << message.params[1];
-	//     sendResponse(client, line.str());
-	//     return;
-	// }
-	// To be see
-	// ERR_NOCHANMODES
+//  if(!serv.isChannel(message.params[0]))
+//  {
+//      assembleResponse(client, ERR_NOSUCHCHANNEL, message.cmd, "No such channel");
+//      return;
+//  }
+//  if(!serv.searchChannel(message.params[0]).isAMember(&client))
+//  {
+//      assembleResponse(client, ERR_NOTONCHANNEL, message.cmd, "You're not on that channel");
+//      return;
+//  }
+//  if(serv.searchChannel(message.params[0]).setTopic(message.params[1], &client))
+//  {
+//      assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "You're not channel operator");
+//      return;
+//  }
+//  else
+//  {
+//      std::ostringstream line;
+//      line << ':' << nickOrStar(client) << " " << message.cmd << " " << message.params[0] << " :" << message.params[1];
+//      sendResponse(client, line.str());
+//      return;
+//  }
+//  To be see
+//  ERR_NOCHANMODES
 //}
 // void cmdPing(Server &serv, Client &client, const Message &message)
 // {
@@ -194,45 +193,50 @@ void cmdInvite(Server &serv, Client &client, const Message &message)
 		assembleResponse(client, ERR_NOSUCHNICK, message.params[0], "No such nick/channel");
 		return;
 	}
-	Channel * chan = serv.searchChannel(message.params[1]);
+	if (message.params[1][0] != '#')
+	{
+		assembleResponse(client, ERR_BADCHANMASK, message.params[1], "Bad Channel Mask");
+		return;
+	}
+	Channel *chan = serv.searchChannel(message.params[1]);
 	if (chan == NULL)
 	{
 		assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[1], "No such channel");
-		return ;
+		return;
 	}
 	int error = 0;
-	Client  *invited = serv.findClientByNickname(message.params[0])->second;
+	Client *invited = serv.findClientByNickname(message.params[0])->second;
 	error = chan->invite(&client, invited);
 	switch (error)
 	{
-		case 3:
-			assembleResponse(client, ERR_USERONCHANNEL, message.params[0] + " " + message.params[1], "is already on channel");
-			return;
-		case 1:
-			assembleResponse(client, ERR_NOTONCHANNEL, message.params[1], "You're not on that channel");
-			return;
-		case 2:
-			assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.params[1], "You're not channel operator");
-			return;
-		case 0:
-			assembleResponse(client, RPL_INVITING, message.params[0] + " " + message.params[1], "");
-			sendResponse(*invited, ":" + client.getNickName() + "!" + client.getUserName() + "@localhost INVITE " + message.params[0] + " " + message.params[1]);
-			return;
+	case 3:
+		assembleResponse(client, ERR_USERONCHANNEL, message.params[0] + " " + message.params[1], "is already on channel");
+		return;
+	case 1:
+		assembleResponse(client, ERR_NOTONCHANNEL, message.params[1], "You're not on that channel");
+		return;
+	case 2:
+		assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.params[1], "You're not channel operator");
+		return;
+	case 0:
+		assembleResponse(client, RPL_INVITING, message.params[0] + " " + message.params[1], "");
+		sendResponse(*invited, ":" + client.getNickName() + "!" + client.getUserName() + "@localhost INVITE " + message.params[0] + " " + message.params[1]);
+		return;
 	}
 }
 
 void cmdJoin(Server &serv, Client &client, const Message &message)
 {
 	// Verifier qu'il y a un # devant le nom du channel demande
-	if(message.params[0][0] == '#')
+	if (message.params[0][0] == '#')
 	{
 		assembleResponse(client, ERR_BADCHANMASK, message.params[0], "Bad Channel Mask");
 		return;
 	}
 
-	Channel * chan = serv.searchChannel(message.params[0]);
+	Channel *chan = serv.searchChannel(message.params[0]);
 	// Verifier si le channel existe, sinon go le creer et le createur devient operator et membre
-	if(chan == NULL)
+	if (chan == NULL)
 	{
 		chan = serv.addChannel(message.params[0]);
 		chan->addMember(&client);
@@ -241,31 +245,30 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
 	else
 	{
 		int result = chan->addMember(&client);
-		if(result == 1)
+		if (result == 1)
 		{
 			assembleResponse(client, ERR_CHANNELISFULL, message.params[0], "Channel is full");
 			return;
 		}
-		else if(result == 2)
+		else if (result == 2)
 		{
 			assembleResponse(client, ERR_INVITEONLYCHAN, message.params[0], "Channel is set on invited only");
 			return;
 		}
-		//else if()
+		// else if()
 		//{
-			// Verifier si un mot de passe est set
-			// ERR_BADCHANNELKEY
+		//  Verifier si un mot de passe est set
+		//  ERR_BADCHANNELKEY
 		//}
 		else
 		{
-
 		}
 	}
 
-	if(chan->getTopic().empty())
-		 assembleResponse(client, RPL_NOTOPIC, message.params[0], "No Topic is set");
+	if (chan->getTopic().empty())
+		assembleResponse(client, RPL_NOTOPIC, message.params[0], "No Topic is set");
 	else
-		 assembleResponse(client, RPL_TOPIC, message.params[0],chan->getTopic());
+		assembleResponse(client, RPL_TOPIC, message.params[0], chan->getTopic());
 
 	// RPL_NAMREPLY
 	// afficher command dans client server
@@ -274,25 +277,25 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
 
 void cmdKick(Server &serv, Client &client, const Message &message)
 {
-	std::vector<std::string>	channels = splitWithComma(message.params[0]);
-	std::vector<std::string>	users = splitWithComma(message.params[1]);
-	std::vector<std::string>::iterator	it;
+	std::vector<std::string> channels = splitWithComma(message.params[0]);
+	std::vector<std::string> users = splitWithComma(message.params[1]);
+	std::vector<std::string>::iterator it;
 	it = channels.begin();
 	while (it != channels.end())
 	{
 		std::cout << *it << std::endl;
-		it ++;
+		it++;
 	}
 	if (channels.size() != 1 && users.size() > 1)
 	{
 		if (channels.size() != users.size())
-			return ;
+			return;
 	}
-	size_t	chan_i = 0;
-	size_t	user_i = 0;
+	size_t chan_i = 0;
+	size_t user_i = 0;
 	while (user_i < users.size())
 	{
-		if(channels[chan_i][0] != '#')
+		if (channels[chan_i][0] != '#')
 		{
 			assembleResponse(client, ERR_BADCHANMASK, channels[chan_i], "Bad Channel Mask");
 			return;
@@ -301,41 +304,41 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 		if (chan == NULL)
 		{
 			assembleResponse(client, ERR_NOSUCHCHANNEL, channels[chan_i], "No such channel");
-			return ;
+			return;
 		}
 		if (!chan->isAMember(&client))
 		{
 			assembleResponse(client, ERR_NOTONCHANNEL, channels[chan_i], "You're not on that channel");
-			return ;
+			return;
 		}
 		if (!chan->isOperator(&client))
 		{
 			assembleResponse(client, ERR_CHANOPRIVSNEEDED, channels[chan_i], "You're not channel operator");
-			return ;
+			return;
 		}
-		Client	*user = serv.findClientByNickname(users[user_i])->second;
+		Client *user = serv.findClientByNickname(users[user_i])->second;
 		if (chan->removeMember(user))
-		{                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+		{
 			assembleResponse(client, ERR_USERNOTINCHANNEL, client.getNickName() + " " + users[user_i] + " " + channels[chan_i], "They aren't on that channel");
-			return ;
+			return;
 		}
 		if (chan_i < channels.size())
-			chan_i ++;
-		user_i ++;
+			chan_i++;
+		user_i++;
 	}
 }
 
 void cmdQuit(Server &serv, Client &client, const Message &message)
 {
-    (void) serv;
+	(void)serv;
 	(void)client;
 	(void)message;
-    const char *msg = "Aurevoir !\r\n";
-    if (message.params.empty())
-    {
-        send(client.getFdClient(), msg, strlen(msg), 0);
-    }
-    serv.deleteClient(&client);
+	const char *msg = "Aurevoir !\r\n";
+	if (message.params.empty())
+	{
+		send(client.getFdClient(), msg, strlen(msg), 0);
+	}
+	serv.deleteClient(&client);
 }
 
 // void cmdPrivMsg(Server &serv, Client &client, const Message &message)
@@ -344,21 +347,31 @@ void cmdQuit(Server &serv, Client &client, const Message &message)
 // }
 void cmdMode(Server &serv, Client &client, const Message &message)
 {
-	(void)serv;
-	(void)client;
-	std::string	mode = message.params[1];
-	Channel * chan = serv.searchChannel(message.params[0]);
+	if (message.params[0][0] != '#')
+	{
+		assembleResponse(client, ERR_BADCHANMASK, message.params[0], "Bad Channel Mask");
+		return;
+	}
+	Channel *chan = serv.searchChannel(message.params[0]);
 	if (chan == NULL)
 	{
 		assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[1], "No such channel");
-		return ;
+		return;
 	}
-	//verifier si le client est un operateur : forcement un pour mode.
-	size_t	i_params = 2;
-	(void)i_params;
-	std::string::iterator	it = mode.begin();
-	char	sign = '\0';
-	std::string	modes = "itkol";
+	if (!chan->isOperator(&client))
+	{
+		assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.params[0], "You're not channel operator");
+		return;
+	}
+	if (message.params.size() == 1)
+	{
+		// fonction pour print les modes;
+	}
+	std::string mode = message.params[1];
+	size_t i_params = 2;
+	std::string::iterator it = mode.begin();
+	char sign = '\0';
+	std::string modes = "itkol";
 	while (it != mode.end())
 	{
 		if (*it == '-' || *it == '+')
@@ -369,98 +382,102 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 		}
 		if (modes.find(*it) != std::string::npos && sign == '\0')
 		{
-			std::cout << "pas d'operateur" << std::endl;
+			std::cout << "pas de signe" << std::endl;
 			break;
 		}
-		//std::cout << "tout est ok" << std::endl;
+		// std::cout << "tout est ok" << std::endl;
 		switch (*it)
 		{
-			case 'i':
-				if (sign == '+')
-					chan->setInviteOnly(1);
-				if (sign == '-')
-					chan->setInviteOnly(0);
-				break;
-			case 't':
-				if (sign == '+')
-					chan->setTopicChangeOperatorsOnly(1);
-				if (sign == '-')
-					chan->setTopicChangeOperatorsOnly(0);
-				break;
-			case 'k':
-			{
-				if (sign == '+')
-				{
-					if (message.params.begin() + i_params == message.params.end() || message.params[i_params] == "")
-					{
-						std::cout << "erreur parametre" << std::endl;
-						break;
-					}
-					std::string	password = message.params[i_params];
-					chan->setPassword(password, 1);
-					i_params++;
-				}
-				if (sign == '-')
-					chan->setPassword("", 0);
-				break;
-			}
-			case 'o':
+		case 'i':
+			if (sign == '+')
+				chan->setInviteOnly(1);
+			if (sign == '-')
+				chan->setInviteOnly(0);
+			break;
+		case 't':
+			if (sign == '+')
+				chan->setTopicChangeOperatorsOnly(1);
+			if (sign == '-')
+				chan->setTopicChangeOperatorsOnly(0);
+			break;
+		case 'k':
+		{
+			if (sign == '+')
 			{
 				if (message.params.begin() + i_params == message.params.end() || message.params[i_params] == "")
 				{
-					std::cout << "erreur parametre" << std::endl;
+					assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "Not enough parameters");
 					break;
 				}
-				Client  *invited = serv.findClientByNickname(message.params[i_params])->second;
+				if (chan->isPasswordSet())
+				{
+					assembleResponse(client, ERR_KEYSET, message.params[0], "Channel key already set");
+					break;
+				}
+				std::string password = message.params[i_params];
+				chan->setPassword(password, 1);
 				i_params++;
-				if (sign == '+')
-				{
-					if (chan->addOperator(invited))
-					{
-						std::cout << "erreur n'est pas membre du channel" << std::endl;
-					}
-				}
-				if (sign == '-')
-				{
-					if (chan->removeOperators(invited))
-					{
-						std::cout << "n'est pas un operateur peut pas enlever" << std::endl;
-					}
-				}
+			}
+			if (sign == '-')
+				chan->setPassword("", 0);
+			break;
+		}
+		case 'o':
+		{
+			if (message.params.begin() + i_params == message.params.end() || message.params[i_params] == "")
+			{
+				assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "Not enough parameters");
 				break;
 			}
-			case 'l':
-				if (sign == '+')
+			Client *invited = serv.findClientByNickname(message.params[i_params])->second;
+			i_params++;
+			if (sign == '+')
+			{
+				if (chan->addOperator(invited))
 				{
-					if (message.params.begin() + i_params == message.params.end() || message.params[i_params] == "")
-					{
-						std::cout << "erreur parametre" << std::endl;
-						break;
-					}
-					unsigned int	nb = atoi(message.params[i_params].c_str());
-					if (nb == 0)
-					{
-						std::cout << "erreur parametre" << std::endl;
-						break;
-					}
-					i_params++;
-						chan->setMaxOfClients(nb, 1);
+					assembleResponse(client, ERR_USERNOTINCHANNEL, invited->getNickName() + " " + message.params[0], "They aren't on that channel");
+					break;
 				}
-				if (sign == '-')
-					chan->setMaxOfClients(0, 0);
-				break;
-			default :
-				std::cout << "pas une option" << std::endl;
-				break;
+			}
+			if (sign == '-')
+			{
+				chan->removeOperators(invited);
+			}
+			break;
 		}
-		//std::cout << *it << std::endl;
+		case 'l':
+			if (sign == '+')
+			{
+				if (message.params.begin() + i_params == message.params.end() || message.params[i_params] == "")
+				{
+					assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "Not enough parameters");
+					break;
+				}
+				unsigned int nb = atoi(message.params[i_params].c_str());
+				if (nb == 0)
+				{
+					assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.cmd, "Not enough parameters");
+					break;
+				}
+				i_params++;
+				chan->setMaxOfClients(nb, 1);
+			}
+			if (sign == '-')
+				chan->setMaxOfClients(0, 0);
+			break;
+		default:
+			assembleResponse(client, ERR_CHANOPRIVSNEEDED, *it, "is unknown mode char to me");
+			std::cout << "pas une option" << std::endl;
+			break;
+		}
+		// std::cout << *it << std::endl;
 		it++;
 	}
-	/* -i = set/remove invite only 
-	-t = set/remove restrictions of TOPIC command to channel operators 
+	/* -i = set/remove invite only
+	-t = set/remove restrictions of TOPIC command to channel operators
 	-k = password
 	-o = be an operator or not
-	-l = user limit 
+	-l = user limit
 
 	//ERR_NEEDMOREPARAMS
 	si la fonction attend un param et qu'il n'est pas la
@@ -469,17 +486,13 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 	//quand le password du channel a deja ete set
 	//ERR_NOCHANMODES
 	//quand on essaye de set un mode alors que le channel ne supporte pas les modes, je ne pense pas que cela nous concerne
-
-	ERR_CHANOPRIVSNEEDED
-	//n'est pas operator
-    ERR_USERNOTINCHANNEL
+	ERR_USERNOTINCHANNEL
 	// le target user n'est pas sur le channel
 
 	ERR_UNKNOWNMODE
 	//le mode est inconnu au bataillon
-
 	RPL_CHANNELMODEIS
-	//renvoi les modes actuels d'un channel quand on fait par exemple MODE #42 
+	//renvoi les modes actuels d'un channel quand on fait par exemple MODE #42
 	// ca revoit par exemple :irc.example.com 324 Bob #42 +nt */
 }
 

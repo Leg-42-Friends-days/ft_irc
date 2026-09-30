@@ -79,17 +79,18 @@ bool	Channel::addOperator( Client *client)
 	this->_operators.insert(std::pair<int, Client*>(client->getFdClient(), client));
 		return (0);
 }
-bool	Channel::removeOperators( Client *client)
+
+void	Channel::removeOperators( Client *client)
 {
 	std::map<int, Client*>::iterator	it;
 	it = this->_operators.find(client->getFdClient());
 	if (it != this->_operators.end())
 	{	
 		this->_operators.erase(it);
-		return (0);
+		return;
 	}
 	else
-		return (1);
+		return;
 }
 void	Channel::printChannelOperators( void )
 {

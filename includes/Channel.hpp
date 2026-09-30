@@ -27,7 +27,7 @@ class Channel
 		bool	isAMember( Client *client);
 		//operators
 		bool	addOperator( Client *client);
-		bool	removeOperators( Client *client);
+		void	removeOperators( Client *client);
 		void	printChannelOperators( void );
 		bool	isOperator( Client *client);
 		//invited
