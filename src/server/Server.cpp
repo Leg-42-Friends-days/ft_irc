@@ -130,6 +130,20 @@ void	Server::deleteClient(Client *client)
 	this->_clientRepertory.erase(it_client);
 	delete(toDelete);
 }
+Client* Server::searchClientByNickname(const std::string &nickName)
+{
+	std::string normalizeName = toLower(nickName);
+	std::map<int, Client*>::iterator	it = this->_clientRepertory.begin();
+	std::map<int, Client*>::iterator	it_end = this->_clientRepertory.end();
+
+	while (it != it_end)
+	{
+		if (toLower(it->second->getNickName()) == normalizeName)
+			return it->second;
+		it++;
+	}
+	return NULL;
+}
 
 std::map<int, Client*>::iterator	Server::findClientByNickname( std::string nickname)
 {
@@ -256,7 +270,7 @@ Channel* Server::searchChannel(const std::string &channelName)
 	std::map<std::string, Channel*>::iterator	it;
 	it = this->_lobby.find(normalizeName);
 	if(it == _lobby.end())
-	return NULL;
+		return NULL;
 	return it->second;
 }
 

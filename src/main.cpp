@@ -1,5 +1,11 @@
 #include "../includes/Server.hpp"
 
+volatile sig_atomic_t g_running = 1;
+void onSignal(int)
+{
+	g_running = 0;
+}
+
 // mise a jour pour gerer overflow
 bool checkPort(const std::string &port)
 {
@@ -23,8 +29,8 @@ bool checkPort(const std::string &port)
 
 void	init_signals(void)
 {
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGINT, SIG_IGN);
+	sigaction(SIGPIPE, SIG_IGN);
+	sigaction(SIGINT, SIG_IGN);
 }
 
 void 	entryParsing(int &ac, char **av)
@@ -68,7 +74,7 @@ void	pollLoop(Server &serv)
 				{
 					try
 					{
-						
+
 						if (serv.receiveMess(serv.getpollFds()[i]))
 							continue;
 					}
@@ -97,7 +103,7 @@ int main(int ac, char **av)
 		return EXIT_FAILURE;
 	}
 	Server serv(av);
-	//init_signals();
+	init_signals();
 	// CTRL Z pour quitter
 	try
 	{

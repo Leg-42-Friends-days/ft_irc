@@ -6,19 +6,17 @@
 #include "Utils.hpp"
 
 static const CmdInfo cmdInfo[] = {
-	{"NICK", cmdNick, 0, false}, // 431 gere par handler
+	{"NICK", cmdNick, 0, false},
 	{"PASS", cmdPass, 1, false},
 	{"USER", cmdUser, 4, false},
-	//{"TOPIC", cmdTopic, 1, true},
-	// {"PING", cmdPing, 0, false}, // 409 gere par handler
+	{"TOPIC", cmdTopic, 1, true},
 	{"INVITE", cmdInvite, 2, true},
-	//{"JOIN", cmdJoin, 1, true},
+	{"JOIN", cmdJoin, 1, true},
 	// {"KICK", cmdKick, 2, true},
 	// {"QUIT", cmdQuit, 0, false}, // parametres optionnels
-	// {"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
+	{"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
 	// {"MODE", cmdMode, 1, true},
 	// // commande bonus
-	// {"LIST", cmdList, 0, true}, // aucun parametre obligatoire
 	// {"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
 };
 
@@ -186,11 +184,6 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 	chan->broadcast(line.str(), NULL);
 }
 
-// void cmdPing(Server &serv, Client &client, const Message &message)
-// {
-
-// }
-
 void cmdInvite(Server &serv, Client &client, const Message &message)
 {
 	if (!serv.isAClient(message.params[0]))
@@ -289,15 +282,47 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     assembleResponse(client, RPL_ENDOFNAMES, chan->getChannelName(), "End of /NAMES list");
 }
 
-// void cmdPrivMsg(Server &serv, Client &client, const Message &message)
-// {
+void cmdPrivMsg(Server &serv, Client &client, const Message &message)
+{
+	if(message.params.size() == 0)
+	{
+		assembleResponse(client, ERR_NORECIPIENT, "", "No recipient given (PRIVMSG)");
+		return;
+	}
+	if(message.params.size() < 2 || message.params[1].empty())
+	{
+		assembleResponse(client, ERR_NOTEXTTOSEND, message.params[0], "No text to send");
+		return;
+	}
 
-// }
+	if(message.params[0][0] == '#')
+	{
+		Channel * chan = serv.searchChannel(message.params[0]);
+		if (chan == NULL)
+		{
+			assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[0], "No such channel");
+			return ;
+		}
+		if(!chan->isAMember(&client))
+		{
+			assembleResponse(client, ERR_CANNOTSENDTOCHAN, message.params[0], "Cannot send to channel");
+			return ;
+		}
+		std::string out = ":" + client.prefix() + " PRIVMSG " + chan->getChannelName() + " :" + message.params[1];
+		chan->broadcast(out, &client);
+		return;
+	}
+	Client  *receiver = serv.searchClientByNickname(message.params[0]);
+	if (receiver == NULL)
+	{
+		assembleResponse(client, ERR_NOSUCHNICK, message.params[0], "No such nick/channel");
+		return;
+	}
+	std::string out = ":" + client.prefix() + " PRIVMSG " + receiver->getNickName() + " :" + message.params[1];
+	sendResponse(*receiver, out);
+	return;
+}
 // void cmdMode(Server &serv, Client &client, const Message &message)
-// {
-
-// }
-// void cmdList(Server &serv, Client &client, const Message &message)
 // {
 
 // }
