@@ -19,19 +19,16 @@ struct CmdInfo {
 typedef void (*handler_t)(Server &serv, Client &client, const Message &message);
 
 void    dispatcher(Server &serv, Client &client, const Message &message);
-void    sendResponse(const Client &client, std::string line);
 void    assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text);
 
 void cmdNick(Server &serv, Client &client, const Message &message);
 void cmdPass(Server &serv, Client &client, const Message &message);
 void cmdUser(Server &serv, Client &client, const Message &message);
-//void cmdTopic(Server &serv, Client &client, const Message &message);
-// void cmdPing(Server &serv, Client &client, const Message &message);
+void cmdTopic(Server &serv, Client &client, const Message &message);
 void cmdInvite(Server &serv, Client &client, const Message &message);
-// void cmdJoin(Server &serv, Client &client, const Message &message);
+void cmdJoin(Server &serv, Client &client, const Message &message);
 void cmdKick(Server &serv, Client &client, const Message &message);
-void cmdQuit(Server &serv, Client &client, const Message &message);
-// void cmdPrivMsg(Server &serv, Client &client, const Message &message);
+// void cmdQuit(Server &serv, Client &client, const Message &message);
+void cmdPrivMsg(Server &serv, Client &client, const Message &message);
 void cmdMode(Server &serv, Client &client, const Message &message);
-// void cmdList(Server &serv, Client &client, const Message &message);
-// void cmdNotice(Server &serv, Client &client, const Message &message);
+void cmdNotice(Server &serv, Client &client, const Message &message);

@@ -3,6 +3,35 @@
 #include "../includes/Replies.hpp"
 #include "../includes/Server.hpp"
 
+bool checkPort(const std::string &port)
+{
+	if(port.empty())
+		return false;
+	for (size_t i = 0; i < port.size(); i++)
+	{
+		if (!isdigit(static_cast<unsigned char>(port[i])))
+				return false;
+	}
+
+	char *end;
+	long portValue = std::strtol(port.c_str(), &end, 10);
+
+	if(*end != '\0')
+		return false;
+	if (portValue > 65535)
+			return false;
+	return true;
+}
+
+void 	entryParsing(int &ac, char **av)
+{
+	//parsing de l'input du programme
+	if (ac != 3)
+		throw std::runtime_error("execute : ./ircserv <port> <password>");
+	if (!checkPort(av[1]))
+		throw std::runtime_error("Error : invalid port!");
+}
+
 std::vector<std::string> splitWithComma(std::string input)
 {
 	std::vector<std::string>	output;
@@ -52,7 +81,7 @@ std::string cutLine(std::string &buffer, int len)
 		else
 			space++;
 	}
-	
+
 	return (buffer.substr(len + space));
 }
 
@@ -85,6 +114,16 @@ std::string nickOrStar(const Client &client)
     if (client.getNickName().empty())
         return "*";
     return client.getNickName();
+}
+
+bool checkFormat(const std::string &msg)
+{
+	for (size_t i = 0; i < msg.length(); i++)
+	{
+		if (std::ispunct(msg[i]))
+			return (true);
+	}
+	return (false);
 }
 
 bool checkClientNickName(const std::string &msg, Server &serv)

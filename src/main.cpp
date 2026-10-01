@@ -1,51 +1,42 @@
 #include "../includes/Server.hpp"
+#include "../includes/Parser.hpp"
 
-// mise a jour pour gerer overflow
-bool checkPort(const std::string &port)
+volatile sig_atomic_t g_running = 1;
+
+void	handler_sig(int)
 {
-	if(port.empty())
-		return false;
-	for (size_t i = 0; i < port.size(); i++)
-	{
-		if (!isdigit(static_cast<unsigned char>(port[i])))
-				return false;
-	}
-
-	char *end;
-	long portValue = std::strtol(port.c_str(), &end, 10);
-
-	if(*end != '\0')
-		return false;
-	if (portValue > 65535)
-			return false;
-	return true;
+	g_running = 0;
 }
 
 void	init_signals(void)
 {
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGINT, SIG_IGN);
-}
+	struct sigaction	sa;
 
-void 	entryParsing(int &ac, char **av)
-{
-	//parsing de l'input du programme
-	if (ac != 3)
-		throw std::runtime_error("execute : ./ircserv <port> <password>");
-	if (!checkPort(av[1]))
-		throw std::runtime_error("Error : invalid port!");
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sa.sa_handler = handler_sig;
+	sigaction(SIGINT, &sa, NULL);
+	sa.sa_handler = handler_sig;
+	sigaction(SIGTERM, &sa, NULL);
+	sa.sa_handler = SIG_IGN;
+	sigaction(SIGPIPE, &sa, NULL);
 }
 
 void	pollLoop(Server &serv)
 {
-	while (true)
+	while (g_running == 1)
 	{
 
 		int	pollCount = poll(&serv.getpollFds()[0], serv.getpollFds().size(), -1);
 		if (pollCount == -1)
 		{
-			std::cerr << "poll error" << std::endl;
-			break;
+			if(errno == EINTR)
+				continue;
+			else
+			{
+				std::cerr << "poll error" << std::endl;
+				break;
+			}
 		}
 		size_t	i = 0;
 		while (i < serv.getpollFds().size())
@@ -61,6 +52,7 @@ void	pollLoop(Server &serv)
 					catch(const std::exception& e)
 					{
 						std::cerr << e.what() << '\n';
+						i++;
 						continue ;
 					}
 				}
@@ -68,9 +60,12 @@ void	pollLoop(Server &serv)
 				{
 					try
 					{
-						
+
 						if (serv.receiveMess(serv.getpollFds()[i]))
+						{
+							i++;
 							continue;
+						}
 					}
 					catch(const std::exception& e)
 					{
@@ -83,22 +78,19 @@ void	pollLoop(Server &serv)
 	}
 }
 
-
 int main(int ac, char **av)
 {
 	try
 	{
 		entryParsing(ac, av);
-		// enregistrer le password ?
 	}
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
 		return EXIT_FAILURE;
 	}
+	init_signals();
 	Server serv(av);
-	//init_signals();
-	// CTRL Z pour quitter
 	try
 	{
 		serv.initServ();

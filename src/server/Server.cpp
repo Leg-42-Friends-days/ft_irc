@@ -4,10 +4,18 @@
 #include "../../includes/Message.hpp"
 #include "../../includes/Parser.hpp"
 #include "../../includes/Command.hpp"
+#include "../../includes/Utils.hpp"
 
 // Constructeur
 Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
 {
+}
+
+// Destructeur
+Server::~Server(void)
+{
+	// tout destroy, chaque fd, delete chaque client et chaque canal, ferme le socket decoute
+	// message : ERROR :Server shutting down
 }
 
 // Fonctions GET
@@ -129,6 +137,20 @@ void	Server::deleteClient(Client *client)
 	this->_clientRepertory.erase(it_client);
 	delete(toDelete);
 }
+Client* Server::searchClientByNickname(const std::string &nickName)
+{
+	std::string normalizeName = toLower(nickName);
+	std::map<int, Client*>::iterator	it = this->_clientRepertory.begin();
+	std::map<int, Client*>::iterator	it_end = this->_clientRepertory.end();
+
+	while (it != it_end)
+	{
+		if (toLower(it->second->getNickName()) == normalizeName)
+			return it->second;
+		it++;
+	}
+	return NULL;
+}
 
 std::map<int, Client*>::iterator	Server::findClientByNickname( std::string nickname)
 {
@@ -181,23 +203,37 @@ void	Server::deleteFromAllTheChannels( Client *client)
 	}
 }
 
+void	Server::broadcastToMemberInChannels(Client *client, const std::string &out)
+{
+	std::map<std::string, Channel*>::iterator	it;
+	std::map<std::string, Channel*>::iterator	it_end;
+	it = this->_lobby.begin();
+	it_end = this->_lobby.end();
+	while (it != it_end)
+	{
+		Channel	*chan = it->second;
+		if (chan->isAMember(client))
+			chan->broadcast(out, client);
+		it++;
+	}
+}
 
 void Server::callCommand(std::string &buffer, Client* client)
 {
 	std::string line = trim(buffer);
-	
+
 	while (line[0] == ':')
 	line = checkPrefix(line);
 	std::stringstream stream(line);
-	
+
 	Message msg;
 	std::string content;
-	
+
 	stream >> msg.cmd;
-	
+
 	while (stream >> content)
 	msg.params.push_back(content);
-	
+
 	dispatcher(*this, *client, msg);
 };
 
@@ -218,7 +254,7 @@ bool	Server::receiveMess( struct pollfd &pollFd)
 	else
 	{
 		buffer[message] = '\0';
-		
+
 		std::string inputBuffer = buffer;
 		callCommand(inputBuffer, it->second);
 		if (this->_clientRepertory.find(fd) == this->_clientRepertory.end())
@@ -227,7 +263,7 @@ bool	Server::receiveMess( struct pollfd &pollFd)
 		return	false;
 	}
 }
-	
+
 void	Server::printChannels( void )
 {
 	std::map<std::string, Channel*>::iterator	it;
@@ -239,17 +275,6 @@ void	Server::printChannels( void )
 		std::cout << it->first << std::endl;
 		it ++;
 	}
-}
-
-std::string toLower(std::string str)
-{
-	size_t i = 0;
-	while(i < str.size())
-	{
-		str[i] = tolower(static_cast<unsigned char>(str[i]));
-		i++;
-	}
-	return str;
 }
 
 Channel*	Server::addChannel( const std::string &channelName )
@@ -266,7 +291,7 @@ Channel* Server::searchChannel(const std::string &channelName)
 	std::map<std::string, Channel*>::iterator	it;
 	it = this->_lobby.find(normalizeName);
 	if(it == _lobby.end())
-	return NULL;
+		return NULL;
 	return it->second;
 }
 
