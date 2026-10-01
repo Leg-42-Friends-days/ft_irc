@@ -35,16 +35,16 @@ void	Channel::addMember( Client *client)
 // 	}
 // }
 
-bool	Channel::removeMember( Client *client)
+void	Channel::removeMember( Client *client)
 {
 	std::map<int, Client*>::iterator	it;
 	it = this->_members.find(client->getFdClient());
 	if (it == this->_members.end())
-		return (1);
+		return;
 	else
 	{
 		this->_members.erase(it);
-		return (0);
+		return;
 	}
 }
 
@@ -262,4 +262,21 @@ bool Channel::isFull() const
 bool Channel::isTopicOpOnly( void ) const
 {
 	return this->_topicChangeOperatorsOnly;
+}
+
+const std::string	Channel::modesPrinter( void )
+{
+	std::string	rslt = "+";
+	if (this->isInviteOnly())
+		rslt += "i";
+	if (this->_topic != "")
+		rslt += "t";
+	if (this->_password != "")
+		rslt += "k";
+	if (this->_nbMaxOfClients != 0)
+		rslt += "l";
+	if (rslt.size() == 1)
+		return ("\r\n");
+	else
+		return (rslt);
 }

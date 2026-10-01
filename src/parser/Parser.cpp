@@ -1,7 +1,7 @@
-#include "../includes/Includes.hpp"
-#include "../includes/Client.hpp"
-#include "../includes/Replies.hpp"
-#include "../includes/Server.hpp"
+#include "Includes.hpp"
+#include "Client.hpp"
+#include "Replies.hpp"
+#include "Server.hpp"
 
 bool checkPort(const std::string &port)
 {

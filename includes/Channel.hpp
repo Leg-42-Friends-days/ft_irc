@@ -26,7 +26,7 @@ class Channel
 		bool isTopicOpOnly() const;
 		// members
 		void	addMember( Client *client);
-		bool	removeMember( Client *client);
+		void	removeMember( Client *client);
 		// void	printChannelMembers( void );
 		bool	isAMember( Client *client) const;
 		std::string listMembers( void ) const;
@@ -50,6 +50,7 @@ class Channel
 		void	setPassword(const std::string &password, bool yesno);
 		bool	isPasswordSet( void ) const;
 		void	setMaxOfClients(const unsigned int &nb, bool yesno);
+		const	std::string modesPrinter( void );
 		// diffusion
 		void	broadcast(const std::string &out, const Client *except) const;
 };

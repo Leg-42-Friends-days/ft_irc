@@ -154,11 +154,12 @@ Client* Server::searchClientByNickname(const std::string &nickName)
 
 std::map<int, Client*>::iterator	Server::findClientByNickname( std::string nickname)
 {
+	std::string normalizeName = toLower(nickname);
 	std::map<int, Client*>::iterator	it;
 	it = this->_clientRepertory.begin();
 	while (it != this->_clientRepertory.end())
 	{
-		if (it->second->getNickName() == nickname)
+		if (it->second->getNickName() == normalizeName)
 			return (it);
 		it++;
 	}

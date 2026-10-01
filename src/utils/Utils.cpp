@@ -1,7 +1,7 @@
-#include "../includes/Includes.hpp"
-#include "../includes/Client.hpp"
-#include "../includes/Replies.hpp"
-#include "../includes/Utils.hpp"
+#include "Includes.hpp"
+#include "Client.hpp"
+#include "Replies.hpp"
+#include "Utils.hpp"
 
 void sendResponse(const Client &client, std::string line)
 {
@@ -18,4 +18,16 @@ std::string toLower(std::string str)
 		i++;
 	}
 	return str;
+}
+
+bool	isOnlyDigits(const std::string &str)
+{
+	std::string::const_iterator	it = str.begin();
+	while (it != str.end())
+	{
+		if (!std::isdigit(static_cast<unsigned char>(*it)))
+			return (0);
+		it++;
+	}
+	return (1);
 }

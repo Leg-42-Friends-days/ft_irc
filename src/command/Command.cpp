@@ -15,7 +15,7 @@ static const CmdInfo cmdInfo[] = {
 	{"KICK", cmdKick, 2, true},
 	// {"QUIT", cmdQuit, 0, false}, // parametres optionnels
 	{"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
-	{"MODE", cmdMode, 1, true},
+	{"MODE", cmdMode, 1, false},
 	// // commande bonus
 	{"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
 };
@@ -382,17 +382,19 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 				continue;
 			}
 			Client *user = serv.findClientByNickname(users[user_i])->second;
-			if (chan->removeMember(user))
+			if (chan->isAMember(user))
 			{
 				assembleResponse(client, ERR_USERNOTINCHANNEL, client.getNickName() + " " + users[user_i] + " " + channels[chan_i], "They aren't on that channel");
 				user_i++;
 				continue;
 			}
+			std::string	out;
+			if (message.params.size() > 2)
+				out = ":" + client.prefix() + " KICK " + chan->getChannelName() + " " + user->getNickName() + " :" + message.params[3] + "\r\n";
 			else
-			{
-				//brodcast  tous les membres du channel
-				//:<nick_de_l_operateur>!<user>@<host> KICK <channel> <target> :<reason>
-			}
+				out = ":" + client.prefix() + " KICK " + chan->getChannelName() + " " + user->getNickName() + "\r\n";
+   			chan->broadcast(out, NULL);
+			chan->removeMember(user);
 			user_i++;
 		}
 		user_i = 0;
@@ -438,7 +440,8 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 	}
 	if (message.params.size() == 1)
 	{
-		// fonction pour print les modes;
+		std::string	out = chan->modesPrinter();
+		assembleResponse(client, RPL_CHANNELMODEIS, message.params[0], out);
 		return;
 	}
 	std::string mode = message.params[1];
@@ -463,15 +466,31 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 		{
 		case 'i':
 			if (sign == '+')
+			{
 				chan->setInviteOnly(1);
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +i" + "\r\n";
+				chan->broadcast(out, NULL);
+			}
 			if (sign == '-')
+			{
 				chan->setInviteOnly(0);
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -i" + "\r\n";
+				chan->broadcast(out, NULL);
+			}
 			break;
 		case 't':
 			if (sign == '+')
+			{
 				chan->setTopicChangeOperatorsOnly(1);
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +t" + "\r\n";
+				chan->broadcast(out, NULL);
+			}
 			if (sign == '-')
+			{
 				chan->setTopicChangeOperatorsOnly(0);
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -t" + "\r\n";
+				chan->broadcast(out, NULL);
+			}
 			break;
 		case 'k':
 		{
@@ -489,10 +508,16 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 				}
 				std::string password = message.params[i_params];
 				chan->setPassword(password, 1);
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +k " + password + "\r\n";
+				chan->broadcast(out, NULL);
 				i_params++;
 			}
 			if (sign == '-')
+			{
 				chan->setPassword("", 0);
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -k" + "\r\n";
+				chan->broadcast(out, NULL);
+			}
 			break;
 		}
 		case 'o':
@@ -516,10 +541,14 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 					assembleResponse(client, ERR_USERNOTINCHANNEL, invited->getNickName() + " " + message.params[0], "They aren't on that channel");
 					break;
 				}
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +o " + invited->getNickName() + "\r\n";
+				chan->broadcast(out, NULL);
 			}
 			if (sign == '-')
 			{
 				chan->removeOperators(invited);
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -o " + invited->getNickName() + "\r\n";
+				chan->broadcast(out, NULL);
 			}
 			break;
 		}
@@ -531,17 +560,23 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 					assembleResponse(client, ERR_NEEDMOREPARAMS, message.cmd, "Not enough parameters");
 					break;
 				}
-				unsigned int nb = atoi(message.params[i_params].c_str());
-				if (nb == 0)
+				unsigned long nb = std::strtoul(message.params[i_params].c_str(), NULL, 10);
+				if (nb == 0 || nb > UINT_MAX || !isOnlyDigits(message.params[i_params]))
 				{
 					assembleResponse(client, ERR_INVALIDLIMIT, message.params[0], "Invalid channel limit");
 					break;
 				}
+				chan->setMaxOfClients(static_cast<unsigned int>(nb), 1);
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +l " + message.params[i_params] + "\r\n";
+				chan->broadcast(out, NULL);
 				i_params++;
-				chan->setMaxOfClients(nb, 1);
 			}
 			if (sign == '-')
+			{
 				chan->setMaxOfClients(0, 0);
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -l" + "\r\n";
+				chan->broadcast(out, NULL);
+			}
 			break;
 		default:
 			assembleResponse(client, ERR_UNKNOWNMODE, std::string(1, *it), "is unknown mode char to me");
@@ -549,9 +584,6 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 		}
 		it++;
 	}
-	//RPL_CHANNELMODEIS
-	//renvoi les modes actuels d'un channel quand on fait par exemple MODE #42
-	// ca revoit par exemple :irc.example.com 324 Bob #42 +nt */
 }
 
 // void cmdList(Server &serv, Client &client, const Message &message)
