@@ -48,6 +48,7 @@ void	Server::initServ( void )
 {
 	addrinfo	hint;
 	addrinfo	*servinfo;
+	int			en = 1;
 	hint.ai_family = AF_UNSPEC;
 	hint.ai_socktype = SOCK_STREAM;
 	hint.ai_flags = AI_PASSIVE;
@@ -55,9 +56,12 @@ void	Server::initServ( void )
 	(void)status;
 
 	this->_servfd = socket(AF_INET, SOCK_STREAM, 0);
-	fcntl(this->_servfd, F_SETFL, O_NONBLOCK);
 	if (this->_servfd == -1)
 		throw ErrorListenFonction();
+	if (setsockopt(this->_servfd, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1)
+		throw ErrorSetsockoptFonction();
+
+	fcntl(this->_servfd, F_SETFL, O_NONBLOCK);
 
 	if (bind(this->_servfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 		throw std::runtime_error("bind() failed on port " + this->_portIP);
@@ -311,6 +315,11 @@ const char *Server::ErrorBindFonction::what() const throw()
 const char *Server::ErrorListenFonction::what() const throw()
 {
 	return ("Error : Can't listen!");
+}
+
+const char *Server::ErrorSetsockoptFonction::what() const throw()
+{
+	return ("Error : setsockopt() failed");
 }
 
 const char *Server::ErrorAcceptFonction::what() const throw()

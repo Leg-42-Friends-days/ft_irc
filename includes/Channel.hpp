@@ -31,7 +31,7 @@ class Channel
 		bool	isAMember( Client *client) const;
 		std::string listMembers( void ) const;
 		//operators
-		bool	addOperator( Client *client);
+		void	addOperator( Client *client);
 		void	removeOperators( Client *client);
 		// void	printChannelOperators( void );
 		bool	isOperator( Client *client) const;

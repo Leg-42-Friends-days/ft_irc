@@ -536,11 +536,12 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 			i_params++;
 			if (sign == '+')
 			{
-				if (chan->addOperator(invited))
+				if (!chan->isAMember(invited))
 				{
 					assembleResponse(client, ERR_USERNOTINCHANNEL, invited->getNickName() + " " + message.params[0], "They aren't on that channel");
 					break;
 				}
+				chan->addOperator(invited);
 				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +o " + invited->getNickName() + "\r\n";
 				chan->broadcast(out, NULL);
 			}
