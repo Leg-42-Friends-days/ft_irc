@@ -65,6 +65,8 @@ void	Server::initServ( void )
 
 	if (listen(this->_servfd, SOMAXCONN) == -1)
 		throw ErrorListenFonction();
+		
+	freeaddrinfo(servinfo);
 }
 
 void	Server::initPollFds( void )

@@ -162,7 +162,7 @@ bool checkDot(const std::string &buffer)
 
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
-
+	(void) serv;
 	if (!client.getUserName().empty())
 	{
 		assembleResponse(client, ERR_ALREADYREGISTRED, "", "already registered");
