@@ -140,50 +140,42 @@ void cmdPass(Server &serv, Client &client, const Message &message)
 	}
 }
 
+std::string convertToLine(const Message &message)
+{
+	std::string line;
+	for (size_t i = 3; i < message.params.size(); i++)
+	{
+		line += message.params[i];
+		if (i != message.params.size())
+			line += " ";
+	}
+
+	return (line);
+}
+
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
-	(void)serv;
-
-	//parametre de user : 
-	// 1 username
-	// 2 mode
-	// 3 ignore
-	// 4 vrai nom
-	// donc un Client doit avoir un true name, le type de mode et le 3eme parametre sera toujours * 
 
 	if (!client.getUserName().empty())
 	{
 		assembleResponse(client, ERR_ALREADYREGISTRED, "", "already registered");
 		return;
 	}
-	// for (int i = 0; i < 3; i++)
-	// {
-	// 	if (message.params[i].empty())
-	// 	{
-	// 		ca aussi a voir avec les autres
-	// 	}
-	// }
-	if (message.params[2] != "*")
-	{
-		// Erreur a voir avec Julio
-		// assembleResponse(client, , message.params[2], "Must be *");
-    	return;
-	}
+	
 	if (checkClientUserName(message.params[0], serv))
 	{
 		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
 		return;
 	}
-	// if (checkModeList(message.params[1], serv))
-	// {
 
-	// }
+	std::string line = convertToLine(message);
+	line = removeDoubleDot(line);
+
     client.setUserName(message.params[0]);
-	// client.setClientMode(message.params[1]);
-	client.setTrueName(message.params[3]);
-
+	client.setTrueName(line);
+	
 	std::cout << "Username set to " << message.params[0] << "\n";
-	std::cout << "True name set to " << message.params[3] << "\n";
+	std::cout << "True name set to " << line << "\n";
 }
 
 void cmdTopic(Server &serv, Client &client, const Message &message)
