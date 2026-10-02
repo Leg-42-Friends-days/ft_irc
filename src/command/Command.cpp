@@ -153,6 +153,13 @@ std::string convertToLine(const Message &message)
 	return (line);
 }
 
+bool checkDot(const std::string &buffer)
+{
+	if (buffer[0] == ':')
+		return (true);
+	return false;
+}
+
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
 
@@ -162,20 +169,27 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 		return;
 	}
 	
-	if (checkClientUserName(message.params[0], serv))
-	{
-		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
-		return;
-	}
-
-	std::string line = convertToLine(message);
-	line = removeDoubleDot(line);
+	// if (checkClientUserName(message.params[0], serv))
+	// {
+	// 	assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
+	// 	return;
+	// }
 
     client.setUserName(message.params[0]);
-	client.setTrueName(line);
-	
 	std::cout << "Username set to " << message.params[0] << "\n";
-	std::cout << "True name set to " << line << "\n";
+
+	if (checkDot(message.params[3]))
+	{
+		std::string line = convertToLine(message);
+		line = removeDoubleDot(line);
+		client.setTrueName(line);
+		std::cout << "True name set to " << line << "\n";
+	}
+	else
+	{
+		client.setTrueName(message.params[3]);
+		std::cout << "True name set to " << message.params[3] << "\n";
+	}
 }
 
 void cmdTopic(Server &serv, Client &client, const Message &message)
