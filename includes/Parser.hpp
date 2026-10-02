@@ -3,12 +3,15 @@
 #include "Includes.hpp"
 #include "Client.hpp"
 
-
+void 	entryParsing(int &ac, char **av);
+bool checkPort(const std::string &port);
 std::string trim(std::string &buffer);
 std::string removeDoubleDot(std::string &buffer);
 std::string cutLine(std::string &buffer, int len);
 std::string checkPrefix(std::string &buffer);
 std::string upperCase(std::string buffer);
 std::string nickOrStar(const Client &client);
+bool checkFormat(const std::string &msg);
 bool checkClientNickName(const std::string &msg, Server &serv);
 bool checkClientUserName(const std::string &msg, Server &serv);
+std::vector<std::string> splitWithComma(std::string input);

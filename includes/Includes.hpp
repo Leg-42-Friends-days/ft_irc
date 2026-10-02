@@ -20,5 +20,5 @@
 #include <stdio.h>
 #include <poll.h>
 #include <vector>
-#include <map>
-#include <sstream>
+#include <cerrno>
+#include <climits>

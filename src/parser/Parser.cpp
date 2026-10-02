@@ -1,8 +1,52 @@
-#include "../includes/Includes.hpp"
-#include "../includes/Client.hpp"
-#include "../includes/Replies.hpp"
-#include "../includes/Server.hpp"
+#include "Includes.hpp"
+#include "Client.hpp"
+#include "Replies.hpp"
+#include "Server.hpp"
 
+bool checkPort(const std::string &port)
+{
+	if(port.empty())
+		return false;
+	for (size_t i = 0; i < port.size(); i++)
+	{
+		if (!isdigit(static_cast<unsigned char>(port[i])))
+				return false;
+	}
+
+	char *end;
+	long portValue = std::strtol(port.c_str(), &end, 10);
+
+	if(*end != '\0')
+		return false;
+	if (portValue > 65535)
+			return false;
+	return true;
+}
+
+void 	entryParsing(int &ac, char **av)
+{
+	//parsing de l'input du programme
+	if (ac != 3)
+		throw std::runtime_error("execute : ./ircserv <port> <password>");
+	if (!checkPort(av[1]))
+		throw std::runtime_error("Error : invalid port!");
+}
+
+std::vector<std::string> splitWithComma(std::string input)
+{
+	std::vector<std::string>	output;
+	std::size_t found = input.find_first_of(",");
+	std::string	subStr = input.substr(0, found);
+	output.push_back(subStr);
+	while (found != std::string::npos)
+ 	{
+		std::size_t	begin = found;
+		found = input.find_first_of(",", begin + 1);
+		subStr = input.substr(begin + 1, found - (begin + 1));
+		output.push_back(subStr);
+  	}
+	return (output);
+}
 std::string trim(std::string &buffer)
 {
 	const std::string wspace = " \t\r\n";
@@ -37,7 +81,7 @@ std::string cutLine(std::string &buffer, int len)
 		else
 			space++;
 	}
-	
+
 	return (buffer.substr(len + space));
 }
 
@@ -70,6 +114,16 @@ std::string nickOrStar(const Client &client)
     if (client.getNickName().empty())
         return "*";
     return client.getNickName();
+}
+
+bool checkFormat(const std::string &msg)
+{
+	for (size_t i = 0; i < msg.length(); i++)
+	{
+		if (std::ispunct(msg[i]))
+			return (true);
+	}
+	return (false);
 }
 
 bool checkClientNickName(const std::string &msg, Server &serv)

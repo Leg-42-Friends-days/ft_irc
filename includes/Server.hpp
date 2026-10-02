@@ -17,6 +17,7 @@ class Server
 
 	public:
 		Server(char **av);
+		~Server(void);
 		const std::string	&getPortIP( void );
 		const int	&getServFd( void );
 		std::vector<struct pollfd> &getpollFds( void );
@@ -27,8 +28,9 @@ class Server
 		void	addClient( void );
 		void	deleteClient(Client *client);
 		std::map<int, Client*>::iterator	findClientByNickname( std::string nickname);
+		Client* searchClientByNickname(const std::string &nickName);
 		bool	isAClient(std::string nickname);
-		void	receiveMess(struct pollfd &pollFd);
+		bool	receiveMess(struct pollfd &pollFd);
 		void	callCommand(std::string &buffer, Client* client);
 		//Channel
 		Channel*	addChannel( const std::string &channelName );
@@ -36,7 +38,7 @@ class Server
 		// int		isChannel( std::string channelName);
 		Channel* 	searchChannel(const std::string &channelName);
 		void	deleteFromAllTheChannels( Client *client);
-
+		void	broadcastToMemberInChannels(Client *client, const std::string &out);
 
 		//exceptions
 		class ErrorBindFonction : public std::exception
