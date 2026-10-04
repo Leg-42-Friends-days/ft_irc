@@ -59,6 +59,12 @@ class Server
 				const char *what() const throw();
 		};
 
+		class ErrorSetsockoptFonction : public std::exception
+		{
+			public:
+				const char *what() const throw();
+		};
+
 		class ErrorAcceptFonction : public std::exception
 		{
 			public:

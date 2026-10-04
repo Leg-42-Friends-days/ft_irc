@@ -3,7 +3,7 @@
 #include "../../includes/Channel.hpp"
 #include "../../includes/Utils.hpp"
 
-Channel::Channel(std::string channelName) : _topicChangeOperatorsOnly(0), _inviteOnly(0), _password(""), _nbMaxOfClients(0)
+Channel::Channel(std::string channelName) : _topic(""), _topicChangeOperatorsOnly(0), _inviteOnly(0), _password(""), _nbMaxOfClients(0)
 {
 	this->_channelName = channelName;
 }
@@ -59,12 +59,9 @@ bool	Channel::isAMember( Client *client) const
 		return (1);
 }
 
-bool	Channel::addOperator( Client *client)
+void	Channel::addOperator( Client *client)
 {
-	if (!this->isAMember(client))
-		return (1);
 	this->_operators.insert(std::pair<int, Client*>(client->getFdClient(), client));
-		return (0);
 }
 
 void	Channel::removeOperators( Client *client)
