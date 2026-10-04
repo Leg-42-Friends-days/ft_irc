@@ -32,3 +32,4 @@ void cmdKick(Server &serv, Client &client, const Message &message);
 void cmdPrivMsg(Server &serv, Client &client, const Message &message);
 void cmdMode(Server &serv, Client &client, const Message &message);
 void cmdNotice(Server &serv, Client &client, const Message &message);
+void cmdDccSend(Server &serv, Client &client, const Message &message);

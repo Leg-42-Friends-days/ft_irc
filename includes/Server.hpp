@@ -4,6 +4,14 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
+struct FileTransfer
+{
+	int fd;
+	std::string filename;
+	size_t fileSize;
+	size_t bytesReived;
+};
+
 class Server
 {
 	private:

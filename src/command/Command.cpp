@@ -18,6 +18,8 @@ static const CmdInfo cmdInfo[] = {
 	{"MODE", cmdMode, 1, false},
 	// // commande bonus
 	{"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
+	{"DCC", cmdDccSend, 4, true}, // DCC = Direct Client to Client
+	// DCC arguments : SEND fichier.txt [ip port] filesize
 };
 
 void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
@@ -649,4 +651,31 @@ void cmdNotice(Server &serv, Client &client, const Message &message)
 	std::string out = ":" + client.prefix() + " NOTICE " + receiver->getNickName() + " :" + message.params[1];
 	sendResponse(*receiver, out);
 	return;
+}
+
+void cmdDccSend(Server &serv, Client &client, const Message &message)
+{
+	(void) serv;
+	(void) client;
+	std::cout << message.params[0] << "\n";
+	if (upperCase(message.params[0]) != "SEND")
+	{
+		std::cout << "ERROR SEND\n";
+		// error PAS SEND 
+		return;
+	}
+
+	// if (!client.isRegistered())
+	// {
+	//	   le client qu'il envoie
+	// 	// error;
+	// 	return;
+	// }
+	std::ifstream file(message.params[1].c_str());
+
+	if (!file)
+	{
+		std::cout << "ERORR FILE\n";
+		return;
+	}
 }
