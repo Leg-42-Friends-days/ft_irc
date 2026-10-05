@@ -1,7 +1,9 @@
 #include "../../includes/Client.hpp"
 #include "../../includes/Server.hpp"
 
-// Constructeur
+// ---------------------------------------------- //
+// ---------------- CONSTRUCTEURS --------------- //
+
 Client::Client(int fd, const std::string &host)
 : _fdClient(fd),
 _nickName(""),
@@ -22,7 +24,9 @@ Client& Client::operator=(const Client &other)
 	return (*this);
 }
 
-// Getters
+// ---------------------------------------------- //
+// ---------------- CONSTRUCTEURS --------------- //
+
 int	Client::getFdClient(void) const
 {
     return (this->_fdClient);
