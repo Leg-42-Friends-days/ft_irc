@@ -13,11 +13,9 @@ static const CmdInfo cmdInfo[] = {
 	{"INVITE", cmdInvite, 2, true},
 	{"JOIN", cmdJoin, 1, true},
 	{"KICK", cmdKick, 2, true},
-	// {"QUIT", cmdQuit, 0, false}, // parametres optionnels
-	{"PRIVMSG", cmdPrivMsg, 0, true}, // 411/412 aucune reponse
+	{"PRIVMSG", cmdPrivMsg, 0, true},
 	{"MODE", cmdMode, 1, false},
-	// // commande bonus
-	{"NOTICE", cmdNotice, 0, true}, // pour eviter boucle infinie avec le bot, aucune reponse auto
+	{"NOTICE", cmdNotice, 0, true},
 };
 
 void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
