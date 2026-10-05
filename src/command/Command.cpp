@@ -39,12 +39,10 @@ void sendWelcome(const Client &client)
 
 void dispatcher(Server &serv, Client &client, const Message &message)
 {
-    // normaliser verbe en majuscule
     std::string verb = upperCase(message.cmd);
     if(verb.empty())
         return;
 
-    // parcourir table pour touver ligne correspondante
     const CmdInfo * found = NULL;
     size_t cmdCount = (sizeof(cmdInfo) / sizeof(cmdInfo[0]));
     for(size_t i = 0; i < cmdCount; i++)
@@ -73,7 +71,6 @@ void dispatcher(Server &serv, Client &client, const Message &message)
         return ;
     }
 
-    // appel du handler
     found->ft(serv, client, message);
 }
 
@@ -138,43 +135,17 @@ void cmdPass(Server &serv, Client &client, const Message &message)
 	}
 }
 
-std::string convertToLine(const Message &message)
-{
-	std::string line;
-	for (size_t i = 3; i < message.params.size(); i++)
-	{
-		line += message.params[i];
-		if (i != message.params.size())
-			line += " ";
-	}
-
-	return (line);
-}
-
-bool checkDot(const std::string &buffer)
-{
-	if (buffer[0] == ':')
-		return (true);
-	return false;
-}
-
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
 	(void) serv;
-	if (!client.getUserName().empty())
-	{
-		assembleResponse(client, ERR_ALREADYREGISTRED, "", "already registered");
+
+	if(client.isRegistered())
+    {
+		assembleResponse(client, ERR_ALREADYREGISTRED, "", "You are already register");
 		return;
-	}
-	
-	// if (checkClientUserName(message.params[0], serv))
-	// {
-	// 	assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Username is already in use");
-	// 	return;
-	// }
+    }
 
     client.setUserName(message.params[0]);
-	std::cout << "Username set to " << message.params[0] << "\n";
 
 	if (checkDot(message.params[3]))
 	{
@@ -188,6 +159,13 @@ void cmdUser(Server &serv, Client &client, const Message &message)
 		client.setTrueName(message.params[3]);
 		std::cout << "True name set to " << message.params[3] << "\n";
 	}
+
+	client.setUserName(message.params[0]);
+	if(client.isRegistered())
+	{
+		sendWelcome(client);
+		return;
+    }
 }
 
 void cmdTopic(Server &serv, Client &client, const Message &message)
@@ -232,11 +210,6 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 
 void cmdInvite(Server &serv, Client &client, const Message &message)
 {
-	if (!serv.isAClient(message.params[0]))
-	{
-		assembleResponse(client, ERR_NOSUCHNICK, message.params[0], "No such nick/channel");
-		return;
-	}
 	if (message.params[1][0] != '#')
 	{
 		assembleResponse(client, ERR_BADCHANMASK, message.params[1], "Bad Channel Mask");
@@ -249,13 +222,19 @@ void cmdInvite(Server &serv, Client &client, const Message &message)
 		return;
 	}
 	int error = 0;
-	Client *invited = serv.findClientByNickname(message.params[0])->second;
+	Client *invited = serv.searchClientByNickname(message.params[0]);
+	if (invited == NULL)
+	{
+		assembleResponse(client, ERR_NOSUCHNICK, message.params[0], "No such nick/channel");
+		return;
+	}
 	error = chan->invite(&client, invited);
 	switch (error)
 	{
 	case 3:
-		assembleResponse(client, ERR_USERONCHANNEL, message.params[0] + " " + message.params[1], "is already on channel");
+		assembleResponse(client, ERR_USERONCHANNEL, message.params[0] + " " + message.params[1], "Is already on channel");
 		return;
+		
 	case 1:
 		assembleResponse(client, ERR_NOTONCHANNEL, message.params[1], "You're not on that channel");
 		return;
@@ -409,13 +388,13 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 		}
 		while (user_i < users.size())
 		{
-			if (!serv.isAClient(users[user_i]))
+			Client *user = serv.searchClientByNickname(users[user_i]);
+			if (user == NULL)
 			{
-				assembleResponse(client, ERR_NOSUCHNICK, users[user_i], "No such nick/channel");
+				assembleResponse(client, ERR_NOSUCHNICK, message.params[0], "No such nick/channel");
 				user_i++;
 				continue;
 			}
-			Client *user = serv.findClientByNickname(users[user_i])->second;
 			if (chan->isAMember(user))
 			{
 				assembleResponse(client, ERR_USERNOTINCHANNEL, client.getNickName() + " " + users[user_i] + " " + channels[chan_i], "They aren't on that channel");
@@ -436,22 +415,17 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 	}
 }
 
-void cmdQuit(Server &serv, Client &client, const Message &message)
-{
-	(void)serv;
-	(void)client;
-	(void)message;
-	const char *msg = "Aurevoir !\r\n";
-	if (message.params.empty())
-	{
-		send(client.getFdClient(), msg, strlen(msg), 0);
-	}
-	serv.deleteClient(&client);
-}
-
-// void cmdPrivMsg(Server &serv, Client &client, const Message &message)
+// void cmdQuit(Server &serv, Client &client, const Message &message)
 // {
-
+// 	(void)serv;
+// 	(void)client;
+// 	(void)message;
+// 	const char *msg = "Aurevoir !\r\n";
+// 	if (message.params.empty())
+// 	{
+// 		send(client.getFdClient(), msg, strlen(msg), 0);
+// 	}
+// 	serv.deleteClient(&client);
 // }
 
 void cmdMode(Server &serv, Client &client, const Message &message)
@@ -561,12 +535,12 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 				assembleResponse(client, ERR_NEEDMOREPARAMS, message.cmd, "Not enough parameters");
 				break;
 			}
-			if (!serv.isAClient(message.params[i_params]))
+			Client *invited = serv.searchClientByNickname(message.params[i_params]);
+			if (invited == NULL)
 			{
-				assembleResponse(client, ERR_NOSUCHNICK, message.params[i_params], "No such nick/channel");
+				assembleResponse(client, ERR_NOSUCHNICK, message.params[0], "No such nick/channel");
 				break;
 			}
-			Client *invited = serv.findClientByNickname(message.params[i_params])->second;
 			i_params++;
 			if (sign == '+')
 			{
@@ -620,9 +594,6 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 		it++;
 	}
 }
-
-// void cmdList(Server &serv, Client &client, const Message &message)
-// {
 
 void cmdNotice(Server &serv, Client &client, const Message &message)
 {

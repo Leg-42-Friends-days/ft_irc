@@ -24,8 +24,9 @@ Client& Client::operator=(const Client &other)
 	return (*this);
 }
 
+
 // ---------------------------------------------- //
-// ---------------- CONSTRUCTEURS --------------- //
+// ------------------- GETTERS ------------------ //
 
 int	Client::getFdClient(void) const
 {
@@ -47,7 +48,10 @@ const std::string &Client::getHostName(void) const
     return (this->_hostName);
 }
 
-// Setters
+
+// ---------------------------------------------- //
+// ------------------- SETTERS ------------------ //
+
 void Client::setNickName(const std::string &nickName)
 {
     this->_nickName = nickName;
@@ -65,7 +69,10 @@ void Client::setTrueName(const std::string &trueName)
     this->_trueName = trueName;
 }
 
-// accesseurs
+
+// --------------------------------------------- //
+// ----------------- ACCESSEURS ---------------- //
+
 bool Client::hasNick() const
 {
     return (this->_hasNick);
@@ -81,7 +88,10 @@ bool Client::hasUser() const
     return (this->_hasUser);
 }
 
-// others
+
+// ----------------------------------------- //
+// ----------------- OTHERS ---------------- //
+
 std::string Client::prefix() const
 {
     std::string buildPrefix = this->_nickName + '!' + this->_userName + '@' + this->_hostName;

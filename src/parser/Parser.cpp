@@ -25,7 +25,6 @@ bool checkPort(const std::string &port)
 
 void 	entryParsing(int &ac, char **av)
 {
-	//parsing de l'input du programme
 	if (ac != 3)
 		throw std::runtime_error("execute : ./ircserv <port> <password>");
 	if (!checkPort(av[1]))
@@ -102,6 +101,7 @@ std::string checkPrefix(std::string &buffer)
 	return buffer;
 }
 
+// Fonction qui passe une string en majuscule
 std::string upperCase(std::string buffer)
 {
 	for (size_t i = 0; i < buffer.length(); i++)
@@ -109,6 +109,7 @@ std::string upperCase(std::string buffer)
 	return (buffer);
 }
 
+// Fonction qui return le nickname, ou une etoile en cas d'absence de nickname
 std::string nickOrStar(const Client &client)
 {
     if (client.getNickName().empty())

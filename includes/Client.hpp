@@ -32,6 +32,7 @@ class Client
 		void setNickName(const std::string &nickName);
 		void setUserName(const std::string &userName);
 		void setTrueName(const std::string &truename);
+
 		// Accesseurs
 		bool hasNick() const;
 		bool hasPwd() const;

@@ -27,9 +27,9 @@ class Server
 		void	initPollFds( void );
 		void	addClient( void );
 		void	deleteClient(Client *client);
-		std::map<int, Client*>::iterator	findClientByNickname( std::string nickname);
+		// std::map<int, Client*>::iterator	findClientByNickname( std::string nickname);
 		Client* searchClientByNickname(const std::string &nickName);
-		bool	isAClient(std::string nickname);
+		// bool	isAClient(std::string nickname);
 		bool	receiveMess(struct pollfd &pollFd);
 		void	callCommand(std::string &buffer, Client* client);
 		//Channel
