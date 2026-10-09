@@ -69,7 +69,7 @@ void	Server::initServ( void )
 
 	if (listen(this->_servfd, SOMAXCONN) == -1)
 		throw ErrorListenFonction();
-		
+
 	freeaddrinfo(servinfo);
 }
 
@@ -102,18 +102,6 @@ void	Server::addClient( void )
 	std::cout << "New client : " << clientFd << " (" << newClient->getHostName() << ")" << std::endl;
 	const char* msg = "Welcome to the IRC server !\n";
 	send(clientFd, msg, std::strlen(msg), 0);
-
-	//test channel
-	/* std::map<std::string, Channel>::iterator	it_general;
-	it_general = this->_lobby.find("general");
-	it_general->second.addMember(newClient);
-	it_general->second.printChannelMembers();
-	std::cout << "print is a member" << std::endl;
-	std::cout << it_general->second.isAMember(newClient) << std::endl;
-	it_general->second.removeMember(newClient);
-	it_general->second.printChannelMembers();
-	std::cout << "print is a member" << std::endl;
-	std::cout << it_general->second.isAMember(newClient) << std::endl; */
 }
 
 void	Server::deleteClient(Client *client)
@@ -159,29 +147,30 @@ Client* Server::searchClientByNickname(const std::string &nickName)
 	return NULL;
 }
 
-std::map<int, Client*>::iterator	Server::findClientByNickname( std::string nickname)
-{
-	std::string normalizeName = toLower(nickname);
-	std::map<int, Client*>::iterator	it;
-	it = this->_clientRepertory.begin();
-	while (it != this->_clientRepertory.end())
-	{
-		if (it->second->getNickName() == normalizeName)
-			return (it);
-		it++;
-	}
-	return (this->_clientRepertory.end());
-}
+// Deux fonctions qui peuvent ne faire qu'une, mais surtout on compare e nicname brut a une chaine normalisee, aucun resultat sera trouvee
+// std::map<int, Client*>::iterator	Server::findClientByNickname( std::string nickname)
+// {
+// 	std::string normalizeName = toLower(nickname);
+// 	std::map<int, Client*>::iterator	it;
+// 	it = this->_clientRepertory.begin();
+// 	while (it != this->_clientRepertory.end())
+// 	{
+// 		if (it->second->getNickName() == normalizeName)
+// 			return (it);
+// 		it++;
+// 	}
+// 	return (this->_clientRepertory.end());
+// }
 
-bool	Server::isAClient(std::string nickname)
-{
-	std::map<int, Client*>::iterator	it;
-	it = this->findClientByNickname(nickname);
-	if (it == this->_clientRepertory.end())
-		return (0);
-	else
-		return (1);
-}
+// bool	Server::isAClient(std::string nickname)
+// {
+// 	std::map<int, Client*>::iterator	it;
+// 	it = this->findClientByNickname(nickname);
+// 	if (it == this->_clientRepertory.end())
+// 		return (0);
+// 	else
+// 		return (1);
+// }
 
 void	Server::deleteFromAllTheChannels( Client *client)
 {
@@ -230,8 +219,8 @@ void Server::callCommand(std::string &buffer, Client* client)
 {
 	std::string line = trim(buffer);
 
-	while (line[0] == ':')
-	line = checkPrefix(line);
+	if (line[0] == ':')
+		line = checkPrefix(line);
 	std::stringstream stream(line);
 
 	Message msg;
@@ -245,6 +234,7 @@ void Server::callCommand(std::string &buffer, Client* client)
 	dispatcher(*this, *client, msg);
 };
 
+// AJOUT DU BUFFER PAR GESTION DE \n\r
 bool	Server::receiveMess( struct pollfd &pollFd)
 {
 	int	fd = pollFd.fd;
