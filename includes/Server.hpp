@@ -27,47 +27,12 @@ class Server
 		void	initPollFds( void );
 		void	addClient( void );
 		void	deleteClient(Client *client);
-		// std::map<int, Client*>::iterator	findClientByNickname( std::string nickname);
 		Client* searchClientByNickname(const std::string &nickName);
-		// bool	isAClient(std::string nickname);
 		bool	receiveMess(struct pollfd &pollFd);
 		void	callCommand(std::string &buffer, Client* client);
 		//Channel
 		Channel*	addChannel( const std::string &channelName );
-		void	printChannels( void );
-		// int		isChannel( std::string channelName);
 		Channel* 	searchChannel(const std::string &channelName);
 		void	deleteFromAllTheChannels( Client *client);
 		void	broadcastToMemberInChannels(Client *client, const std::string &out);
-
-		//exceptions
-		class ErrorBindFonction : public std::exception
-		{
-			public:
-				const char *what() const throw();
-		};
-
-		class ErrorSocketFonction : public std::exception
-		{
-			public:
-				const char *what() const throw();
-		};
-
-		class ErrorListenFonction : public std::exception
-		{
-			public:
-				const char *what() const throw();
-		};
-
-		class ErrorSetsockoptFonction : public std::exception
-		{
-			public:
-				const char *what() const throw();
-		};
-
-		class ErrorAcceptFonction : public std::exception
-		{
-			public:
-				const char *what() const throw();
-		};
 };

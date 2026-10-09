@@ -132,3 +132,14 @@ JOIN    #dev
 :ircserv 375 Julio :- ircserv Message of the Day -
 :ircserv 372 Julio :- Welcome to our IRC server!
 :ircserv 376 Julio :End of /MOTD command.
+
+
+**Problemes detectees**
+- parsing ne met pas tout derriere un ':' dans une seule string
+- modesPrinter probleme gestion du +t
+- setPassword et setMacOfClients n'utilise pas yesno
+-> implémenter les deux sens dans la méthode, ou supprimer le paramètre et créer deux méthodes distinctes — poser et retirer. La seconde est plus claire
+- faire destructeur du serveur
+- deleteFromAllChanels doit diffuser une trame avant de retirer le client de chaque canal (les membres restants dans le canal doivent le savoir)
+- retirer tous les std::cout, le serveur ne doit pas parler
+- getaddrinfo = retour status est ignorer alors quil faut gerer le retour. AF_UNSPEC truc a gerer vs AF_INET

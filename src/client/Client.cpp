@@ -9,20 +9,15 @@ Client::Client(int fd, const std::string &host)
 _nickName(""),
 _userName(""),
 _hostName(host),
+_trueName(""),
+_inBuf(""),
 _hasPwd(false),
 _hasNick(false),
 _hasUser(false)
 {}
 
 Client& Client::operator=(const Client &other)
-{
-    if (this != &other)
-	{
-		//this->Bitcoin_map.clear();
-		//this->Bitcoin_map = rhs.Bitcoin_map;
-	}
-	return (*this);
-}
+{}
 
 
 // ---------------------------------------------- //
@@ -88,6 +83,34 @@ bool Client::hasUser() const
     return (this->_hasUser);
 }
 
+
+// ----------------------------------------- //
+// ----------------- BUFFERS ---------------- //
+
+void Client::addInBuf(const std::string &buffer)
+{
+    this->_inBuf += buffer;
+}
+
+bool Client::extractLineInBuf(std::string &line)
+{
+	std::size_t found = this->_inBuf.find('\n');
+    if(found == std::string::npos)
+        return false;
+    if(found > 0 && (this->_inBuf[found - 1] == '\r'))
+       line = this->_inBuf.substr(0, found - 1);
+    else
+        line = this->_inBuf.substr(0, found);
+    this->_inBuf.erase(0, found + 1);
+    return true;
+}
+
+bool Client::isBufferAboveSize() const
+{
+    if(this->_inBuf.size() > 1024)
+        return true;
+    return false;
+}
 
 // ----------------------------------------- //
 // ----------------- OTHERS ---------------- //

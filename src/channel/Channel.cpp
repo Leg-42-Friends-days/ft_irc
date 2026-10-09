@@ -22,7 +22,7 @@ bool	Channel::isEmpty(void) const
 	return (0);
 }
 
-bool	Channel::checkpassword(const std::string &password)
+bool	Channel::checkpassword(const std::string &password) const
 {
 	if (password == this->_password)
 		return (1);
@@ -134,8 +134,8 @@ bool	Channel::isOperator(Client *client) const
 
 bool	Channel::isInvited(Client *client) const
 {
-	std::map<int, Client*>::const_iterator	it = this->_invited.end();
-	std::map<int, Client*>::const_iterator	it_end = this->_invited.find(client->getFdClient());
+	std::map<int, Client*>::const_iterator	it = this->_invited.find(client->getFdClient());
+	std::map<int, Client*>::const_iterator	it_end = this->_invited.end();
 
 	if (it == it_end)
 		return (0);
@@ -172,7 +172,6 @@ int		Channel::addInvite (Client *client )
 
 void	Channel::removeInvited(Client *client )
 {
-	std::cout << "Retrait de l'invite " << client->getFdClient() << " au channel " << this->_channelName << std::endl;
 	std::map<int, Client*>::iterator	it;
 	it = this->_invited.find(client->getFdClient());
 	if (it != this->_invited.end())
@@ -188,7 +187,7 @@ void	Channel::setTopic(const std::string &topic)
 	this->_topic = topic;
 }
 
-const std::string	&Channel::getTopic(void)
+const std::string	&Channel::getTopic(void) const
 {
 	return this->_topic;
 }
@@ -257,7 +256,7 @@ const std::string	Channel::modesPrinter(void)
 	if (this->_nbMaxOfClients != 0)
 		rslt += "l";
 	if (rslt.size() == 1)
-		return ("\r\n");
+		return ("");
 	else
 		return (rslt);
 }
