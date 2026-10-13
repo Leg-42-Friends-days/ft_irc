@@ -11,6 +11,7 @@ class Client
 		std::string _userName; // utile pour prefixe
 		std::string _hostName; // issue de la fonction accept, ne changera jamais, necessaire pour le prefixe
 		std::string _trueName;
+		std::string _inBuf;
 		bool _hasPwd;
 		bool _hasNick;
 		bool _hasUser;
@@ -37,6 +38,11 @@ class Client
 		bool hasNick() const;
 		bool hasPwd() const;
 		bool hasUser() const;
+
+		// Buffers
+		void addInBuf(const std::string &buffer);
+		bool extractLineInBuf(std::string &line);
+		bool isBufferAboveSize() const;
 
 		// Others
 		std::string prefix() const; // assemblage de nick + user + host

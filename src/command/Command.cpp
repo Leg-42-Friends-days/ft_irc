@@ -14,7 +14,7 @@ static const CmdInfo cmdInfo[] = {
 	{"JOIN", cmdJoin, 1, true},
 	{"KICK", cmdKick, 2, true},
 	{"PRIVMSG", cmdPrivMsg, 0, true},
-	{"MODE", cmdMode, 1, false},
+	{"MODE", cmdMode, 1, true},
 	{"NOTICE", cmdNotice, 0, true},
 };
 
@@ -146,21 +146,8 @@ void cmdUser(Server &serv, Client &client, const Message &message)
     }
 
     client.setUserName(message.params[0]);
+	client.setTrueName(message.params[3]);
 
-	if (checkDot(message.params[3]))
-	{
-		std::string line = convertToLine(message);
-		line = removeDoubleDot(line);
-		client.setTrueName(line);
-		std::cout << "True name set to " << line << "\n";
-	}
-	else
-	{
-		client.setTrueName(message.params[3]);
-		std::cout << "True name set to " << message.params[3] << "\n";
-	}
-
-	client.setUserName(message.params[0]);
 	if(client.isRegistered())
 	{
 		sendWelcome(client);
@@ -234,7 +221,7 @@ void cmdInvite(Server &serv, Client &client, const Message &message)
 	case 3:
 		assembleResponse(client, ERR_USERONCHANNEL, message.params[0] + " " + message.params[1], "Is already on channel");
 		return;
-		
+
 	case 1:
 		assembleResponse(client, ERR_NOTONCHANNEL, message.params[1], "You're not on that channel");
 		return;
@@ -243,7 +230,7 @@ void cmdInvite(Server &serv, Client &client, const Message &message)
 		return;
 	case 0:
 		assembleResponse(client, RPL_INVITING, message.params[0] + " " + message.params[1], "");
-		sendResponse(*invited, ":" + client.getNickName() + "!" + client.getUserName() + "@localhost INVITE " + message.params[0] + " " + message.params[1]);
+		sendResponse(*invited, ":" + client.prefix() + " INVITE " + message.params[0] + " " + message.params[1]);
 		return;
 	}
 }
@@ -267,7 +254,7 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     else
     {
         // Verifier si channel plein
-        if(!chan->isFull())
+        if(chan->isFull())
         {
             assembleResponse(client, ERR_CHANNELISFULL, chan->getChannelName(), "Channel is full");
             return;
@@ -376,13 +363,13 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 		}
 		if (!chan->isAMember(&client))
 		{
-			assembleResponse(client, ERR_NOTONCHANNEL, channels[chan_i], "You're not on that channel");
+			assembleResponse(client, ERR_NOTONCHANNEL, chan->getChannelName(), "You're not on that channel");
 			chan_i++;
 			continue;
 		}
 		if (!chan->isOperator(&client))
 		{
-			assembleResponse(client, ERR_CHANOPRIVSNEEDED, channels[chan_i], "You're not channel operator");
+			assembleResponse(client, ERR_CHANOPRIVSNEEDED, chan->getChannelName(), "You're not channel operator");
 			chan_i++;
 			continue;
 		}
@@ -395,7 +382,7 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 				user_i++;
 				continue;
 			}
-			if (chan->isAMember(user))
+			if (!chan->isAMember(user))
 			{
 				assembleResponse(client, ERR_USERNOTINCHANNEL, client.getNickName() + " " + users[user_i] + " " + channels[chan_i], "They aren't on that channel");
 				user_i++;
@@ -403,9 +390,9 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 			}
 			std::string	out;
 			if (message.params.size() > 2)
-				out = ":" + client.prefix() + " KICK " + chan->getChannelName() + " " + user->getNickName() + " :" + message.params[3] + "\r\n";
+				out = ":" + client.prefix() + " KICK " + chan->getChannelName() + " " + user->getNickName() + " :" + message.params[2];
 			else
-				out = ":" + client.prefix() + " KICK " + chan->getChannelName() + " " + user->getNickName() + "\r\n";
+				out = ":" + client.prefix() + " KICK " + chan->getChannelName() + " " + user->getNickName();
    			chan->broadcast(out, NULL);
 			chan->removeMember(user);
 			user_i++;
@@ -414,19 +401,6 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 		chan_i++;
 	}
 }
-
-// void cmdQuit(Server &serv, Client &client, const Message &message)
-// {
-// 	(void)serv;
-// 	(void)client;
-// 	(void)message;
-// 	const char *msg = "Aurevoir !\r\n";
-// 	if (message.params.empty())
-// 	{
-// 		send(client.getFdClient(), msg, strlen(msg), 0);
-// 	}
-// 	serv.deleteClient(&client);
-// }
 
 void cmdMode(Server &serv, Client &client, const Message &message)
 {
@@ -443,13 +417,13 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 	}
 	if (!chan->isOperator(&client))
 	{
-		assembleResponse(client, ERR_CHANOPRIVSNEEDED, message.params[0], "You're not channel operator");
+		assembleResponse(client, ERR_CHANOPRIVSNEEDED, chan->getChannelName(), "You're not channel operator");
 		return;
 	}
 	if (message.params.size() == 1)
 	{
 		std::string	out = chan->modesPrinter();
-		assembleResponse(client, RPL_CHANNELMODEIS, message.params[0], out);
+		assembleResponse(client, RPL_CHANNELMODEIS, chan->getChannelName(), out);
 		return;
 	}
 	std::string mode = message.params[1];
@@ -467,8 +441,7 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 		}
 		if (sign == '\0')
 		{
-			assembleResponse(client, ERR_NOSIGN, message.params[1], "Mode sign is missing");
-			break;
+			sign = '+';
 		}
 		switch (*it)
 		{
@@ -476,13 +449,13 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 			if (sign == '+')
 			{
 				chan->setInviteOnly(1);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +i" + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +i";
 				chan->broadcast(out, NULL);
 			}
 			if (sign == '-')
 			{
 				chan->setInviteOnly(0);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -i" + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -i";
 				chan->broadcast(out, NULL);
 			}
 			break;
@@ -490,13 +463,13 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 			if (sign == '+')
 			{
 				chan->setTopicChangeOperatorsOnly(1);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +t" + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +t";
 				chan->broadcast(out, NULL);
 			}
 			if (sign == '-')
 			{
 				chan->setTopicChangeOperatorsOnly(0);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -t" + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -t";
 				chan->broadcast(out, NULL);
 			}
 			break;
@@ -516,14 +489,14 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 				}
 				std::string password = message.params[i_params];
 				chan->setPassword(password, 1);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +k " + password + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +k " + password;
 				chan->broadcast(out, NULL);
 				i_params++;
 			}
 			if (sign == '-')
 			{
 				chan->setPassword("", 0);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -k" + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -k";
 				chan->broadcast(out, NULL);
 			}
 			break;
@@ -550,13 +523,13 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 					break;
 				}
 				chan->addOperator(invited);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +o " + invited->getNickName() + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +o " + invited->getNickName();
 				chan->broadcast(out, NULL);
 			}
 			if (sign == '-')
 			{
 				chan->removeOperators(invited);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -o " + invited->getNickName() + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -o " + invited->getNickName();
 				chan->broadcast(out, NULL);
 			}
 			break;
@@ -572,18 +545,18 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 				unsigned long nb = std::strtoul(message.params[i_params].c_str(), NULL, 10);
 				if (nb == 0 || nb > UINT_MAX || !isOnlyDigits(message.params[i_params]))
 				{
-					assembleResponse(client, ERR_INVALIDLIMIT, message.params[0], "Invalid channel limit");
+					assembleResponse(client, ERR_UNKNOWNMODE, "l", "Invalid channel limit");
 					break;
 				}
 				chan->setMaxOfClients(static_cast<unsigned int>(nb), 1);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +l " + message.params[i_params] + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +l " + message.params[i_params];
 				chan->broadcast(out, NULL);
 				i_params++;
 			}
 			if (sign == '-')
 			{
 				chan->setMaxOfClients(0, 0);
-				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -l" + "\r\n";
+				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -l";
 				chan->broadcast(out, NULL);
 			}
 			break;

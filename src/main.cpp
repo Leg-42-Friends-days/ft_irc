@@ -95,9 +95,6 @@ int main(int ac, char **av)
 	{
 		serv.initServ();
 		serv.initPollFds();
-		Channel	*chan = serv.addChannel("general");
-		(void)chan;
-		serv.printChannels();
 		pollLoop(serv);
 	}
 	catch(const std::exception& e)
