@@ -249,7 +249,7 @@ const std::string	Channel::modesPrinter(void)
 	std::string	rslt = "+";
 	if (this->isInviteOnly())
 		rslt += "i";
-	if (this->_topic != "")
+	if (this->_topicChangeOperatorsOnly)
 		rslt += "t";
 	if (this->_password != "")
 		rslt += "k";

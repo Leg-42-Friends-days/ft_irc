@@ -34,15 +34,22 @@ void 	entryParsing(int &ac, char **av)
 std::vector<std::string> splitWithComma(std::string input)
 {
 	std::vector<std::string>	output;
-	std::size_t found = input.find_first_of(",");
-	std::string	subStr = input.substr(0, found);
-	output.push_back(subStr);
-	while (found != std::string::npos)
+	std::string subStr;
+	while (!input.empty())
  	{
-		std::size_t	begin = found;
-		found = input.find_first_of(",", begin + 1);
-		subStr = input.substr(begin + 1, found - (begin + 1));
-		output.push_back(subStr);
+		std::size_t found = input.find_first_of(",");
+		if(found == std::string::npos)
+		{
+			output.push_back(input);
+			break;
+		}
+		else
+		{
+			subStr = input.substr(0, found);
+			if(!subStr.empty())
+				output.push_back(subStr);
+			input.erase(0, found + 1);
+		}
   	}
 	return (output);
 }
@@ -58,30 +65,6 @@ std::string trim(std::string &buffer)
 	size_t last = buffer.find_last_not_of(wspace);
 
 	return (buffer.substr(first, (last - first + 1)));
-}
-
-std::string removeDoubleDot(std::string &buffer)
-{
-	int i = 0;
-	if (buffer[0] == ':')
-		i++;
-	std::string line = buffer.substr(i);
-	line = trim(line);
-	return (line);
-}
-
-std::string cutLine(std::string &buffer, int len)
-{
-	int space = 0;
-	for (size_t i = len; i < buffer.length(); i++)
-	{
-		if (!(std::isspace(buffer[i])))
-			break;
-		else
-			space++;
-	}
-
-	return (buffer.substr(len + space));
 }
 
 std::string checkPrefix(std::string &buffer)
@@ -121,7 +104,7 @@ bool checkFormat(const std::string &msg)
 {
 	for (size_t i = 0; i < msg.length(); i++)
 	{
-		if (std::ispunct(msg[i]))
+		if (static_cast<unsigned char>(std::ispunct(msg[i])))
 			return (true);
 	}
 	return (false);
@@ -134,18 +117,6 @@ bool checkClientNickName(const std::string &msg, Server &serv)
     for (std::map<int, Client*>::const_iterator it = copy.begin(); it != copy.end(); it++)
     {
         if (it->second->getNickName() == msg)
-            return (true);
-    }
-    return (false);
-}
-
-bool checkClientUserName(const std::string &msg, Server &serv)
-{
-    std::map<int, Client*> copy = serv.getClientRepo();
-
-    for (std::map<int, Client*>::const_iterator it = copy.begin(); it != copy.end(); it++)
-    {
-        if (it->second->getUserName() == msg)
             return (true);
     }
     return (false);

@@ -16,6 +16,7 @@ static const CmdInfo cmdInfo[] = {
 	{"PRIVMSG", cmdPrivMsg, 0, true},
 	{"MODE", cmdMode, 1, true},
 	{"NOTICE", cmdNotice, 0, true},
+	{"PING", cmdPing, 0, false},
 };
 
 void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
@@ -592,3 +593,16 @@ void cmdNotice(Server &serv, Client &client, const Message &message)
 	sendResponse(*receiver, out);
 	return;
 }
+
+void cmdPing(Server &serv, Client &client, const Message &message)
+{
+	(void) serv;
+	if (message.params.empty())
+	{
+		assembleResponse(client, ERR_NOORIGIN, "" , "No origin specified");
+		return;
+	}
+	std::string out = ":" + std::string(SERVER_NAME) + " PONG " + SERVER_NAME + " :" + message.params[0];
+	sendResponse(client, out);
+}
+

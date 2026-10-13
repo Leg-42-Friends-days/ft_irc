@@ -132,8 +132,6 @@ void	Server::addClient( void )
 	clientPoll.events = POLLIN;
 	clientPoll.revents = 0;
 	this->_pollFds.push_back(clientPoll);
-	const char* msg = "Welcome to the IRC server !\n";
-	send(clientFd, msg, std::strlen(msg), 0);
 }
 
 void	Server::deleteClient(Client *client)
@@ -224,20 +222,61 @@ void	Server::broadcastToMemberInChannels(Client *client, const std::string &out)
 
 void Server::callCommand(std::string &buffer, Client* client)
 {
-	std::string line = trim(buffer);
 
+	std::string line = trim(buffer);
+	
+	if (line.empty())
+		return;
 	if (line[0] == ':')
 		line = checkPrefix(line);
-	std::stringstream stream(line);
-
+	
 	Message msg;
-	std::string content;
+	std::string extract;
+	size_t space = 0;
 
-	stream >> msg.cmd;
+	while (!line.empty())
+	{
+		if(line[0] == ':')
+		{
+			extract = line.substr(1);
+			msg.params.push_back(extract);
+			break;
+		}
+		space = line.find(' ');
+		if(space == std::string::npos)
+		{
+			if(msg.cmd.empty())
+			{
+				extract = line.substr(0);
+				msg.cmd = extract;
+				break;
+			}
+			else
+			{
+				extract = line.substr(0);
+				msg.params.push_back(extract);
+				break;
+			}
+		}
+		else
+		{
+			if(msg.cmd.empty())
+			{
+				extract = line.substr(0, space);
+				msg.cmd = extract;
+				line.erase(0, space);
+			}
+			else
+			{
+				extract = line.substr(0, space);
+				msg.params.push_back(extract);
+				line.erase(0, space);
+			}
+			while (!line.empty() && line[0] == ' ')
+				line.erase(0, 1);
+		}
 
-	while (stream >> content)
-	msg.params.push_back(content);
-
+	}
 	dispatcher(*this, *client, msg);
 };
 
