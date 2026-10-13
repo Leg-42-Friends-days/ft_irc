@@ -23,7 +23,7 @@ class Channel
 
 		// channels
 		bool	isEmpty(void) const;
-		bool	checkpassword(const std::string &password);
+		bool	checkpassword(const std::string &password) const;
 		const 	std::string &getChannelName(void) const;
 		bool 	isFull(void) const;
 
@@ -46,7 +46,7 @@ class Channel
 
 		// topic
 		void	setTopic(const std::string &topic);
-		const	std::string	&getTopic(void);
+		const	std::string	&getTopic(void) const;
 		bool isTopicOpOnly(void) const;
 
 		// modes
