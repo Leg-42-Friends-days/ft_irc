@@ -2,7 +2,9 @@
 #include "Client.hpp"
 #include "Replies.hpp"
 #include "Server.hpp"
+#include "Utils.hpp"
 
+// Fonction qui verifie la validite du port
 bool checkPort(const std::string &port)
 {
 	if(port.empty())
@@ -23,6 +25,7 @@ bool checkPort(const std::string &port)
 	return true;
 }
 
+// Fonction qui verifie nombre d'arguments et appel checkPort
 void 	entryParsing(int &ac, char **av)
 {
 	if (ac != 3)
@@ -31,6 +34,7 @@ void 	entryParsing(int &ac, char **av)
 		throw std::runtime_error("Error : invalid port!");
 }
 
+// Fonction qui decoupe une string sur les virgules
 std::vector<std::string> splitWithComma(std::string input)
 {
 	std::vector<std::string>	output;
@@ -53,6 +57,8 @@ std::vector<std::string> splitWithComma(std::string input)
   	}
 	return (output);
 }
+
+// Fonction qui trim les espaces et charettes
 std::string trim(std::string &buffer)
 {
 	const std::string wspace = " \t\r\n";
@@ -67,6 +73,7 @@ std::string trim(std::string &buffer)
 	return (buffer.substr(first, (last - first + 1)));
 }
 
+// Fonction qui extrait prefixe du message si trouve
 std::string checkPrefix(std::string &buffer)
 {
 	if (buffer[0] == ':')
@@ -100,24 +107,22 @@ std::string nickOrStar(const Client &client)
     return client.getNickName();
 }
 
-bool checkFormat(const std::string &msg)
+// Fonction qui check le format de Nickname
+bool isCorrectFormat(const std::string &msg)
 {
-	for (size_t i = 0; i < msg.length(); i++)
+	if(msg.size() > 30)
+		return false;
+
+	const std::string specialCarac = "[]\\`_^{}|";
+
+	if(!std::isalpha(static_cast<unsigned char>(msg[0])) && (specialCarac.find(msg[0]) == std::string::npos))
+		return false;
+
+	for (size_t i = 1; i < msg.length(); i++)
 	{
-		if (static_cast<unsigned char>(std::ispunct(msg[i])))
-			return (true);
+		if(!std::isalpha(static_cast<unsigned char>(msg[i])) && (specialCarac.find(msg[i]) == std::string::npos)
+		&& (static_cast<unsigned char>(msg[i]) != '-') && (!std::isdigit(static_cast<unsigned char>(msg[i]))))
+			return false;
 	}
-	return (false);
-}
-
-bool checkClientNickName(const std::string &msg, Server &serv)
-{
-    std::map<int, Client*> copy = serv.getClientRepo();
-
-    for (std::map<int, Client*>::const_iterator it = copy.begin(); it != copy.end(); it++)
-    {
-        if (it->second->getNickName() == msg)
-            return (true);
-    }
-    return (false);
+	return true;
 }

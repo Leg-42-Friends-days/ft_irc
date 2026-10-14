@@ -5,6 +5,9 @@
 #include "Parser.hpp"
 #include "Utils.hpp"
 
+// ---------------------------------------------- //
+// ---------------- COMMAND TABLE  -------------- //
+
 static const CmdInfo cmdInfo[] = {
 	{"NICK", cmdNick, 0, false},
 	{"PASS", cmdPass, 1, false},
@@ -18,6 +21,10 @@ static const CmdInfo cmdInfo[] = {
 	{"NOTICE", cmdNotice, 0, true},
 	{"PING", cmdPing, 0, false},
 };
+
+
+// ---------------------------------------------- //
+// ------------------ RESPONSES  ---------------- //
 
 void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
 {
@@ -37,6 +44,10 @@ void sendWelcome(const Client &client)
 	assembleResponse(client, RPL_CREATED, "", "This server was created : 30th september 2026");
 	assembleResponse(client, RPL_MYINFO, std::string(SERVER_NAME) + " v1 io itkol", "");
 }
+
+
+// ---------------------------------------------- //
+// ------------------ DISPTACHER  --------------- //
 
 void dispatcher(Server &serv, Client &client, const Message &message)
 {
@@ -75,6 +86,9 @@ void dispatcher(Server &serv, Client &client, const Message &message)
     found->ft(serv, client, message);
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD NICK  ----------------- //
 void cmdNick(Server &serv, Client &client, const Message &message)
 {
 	bool isAlreadyRegistered = client.isRegistered();
@@ -84,13 +98,13 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 		return;
 	}
 
-	if (checkFormat(message.params[0]))
+	if (!isCorrectFormat(message.params[0]))
 	{
 		assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");
 		return;
 	}
 
-	if (checkClientNickName(message.params[0], serv))
+	if (serv.searchClientByNickname(message.params[0]) != NULL)
 	{
 		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use");
 		return;
@@ -111,6 +125,9 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 	}
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD PASS  ----------------- //
 void cmdPass(Server &serv, Client &client, const Message &message)
 {
 	if(client.isRegistered())
@@ -136,6 +153,9 @@ void cmdPass(Server &serv, Client &client, const Message &message)
 	}
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD USER  ----------------- //
 void cmdUser(Server &serv, Client &client, const Message &message)
 {
 	(void) serv;
@@ -156,6 +176,9 @@ void cmdUser(Server &serv, Client &client, const Message &message)
     }
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD TOPIC  ---------------- //
 void cmdTopic(Server &serv, Client &client, const Message &message)
 {
 	Channel * chan = serv.searchChannel(message.params[0]);
@@ -196,6 +219,9 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 	chan->broadcast(line.str(), NULL);
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD NICK  ----------------- //
 void cmdInvite(Server &serv, Client &client, const Message &message)
 {
 	if (message.params[1][0] != '#')
@@ -236,9 +262,11 @@ void cmdInvite(Server &serv, Client &client, const Message &message)
 	}
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD TOPIC  ---------------- //
 void cmdJoin(Server &serv, Client &client, const Message &message)
 {
-    // Verifier qu'il y a un # devant le nom du channel demande
     if(message.params[0][0] != '#')
     {
         assembleResponse(client, ERR_BADCHANMASK, message.params[0], "Bad Channel Mask");
@@ -246,7 +274,6 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     }
 
     Channel * chan = serv.searchChannel(message.params[0]);
-    // Verifier si le channel existe, sinon go le creer et le createur devient operator et membre
     if(chan == NULL)
     {
         chan = serv.addChannel(message.params[0]);
@@ -254,13 +281,11 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     }
     else
     {
-        // Verifier si channel plein
         if(chan->isFull())
         {
             assembleResponse(client, ERR_CHANNELISFULL, chan->getChannelName(), "Channel is full");
             return;
         }
-        // Verifier si invite-only et non invite
         if(chan->isInviteOnly() && !chan->isInvited(&client))
         {
             assembleResponse(client, ERR_INVITEONLYCHAN, chan->getChannelName(), "Channel is set on invited only");
@@ -278,28 +303,25 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
             }
         }
     }
-    // Ajout du membre
     chan->addMember(&client);
-
-    // Retirer invitation si elle existe
     chan->removeInvited(&client);
 
-    // Diffuser :nick!user@host JOIN #channelName a tous les membres du channel
     std::string out = ":" + client.prefix() + " JOIN " + chan->getChannelName();
     chan->broadcast(out, NULL);
 
-    // Topic
     if(chan->getTopic().empty())
          assembleResponse(client, RPL_NOTOPIC, chan->getChannelName(), "No Topic is set");
     else
          assembleResponse(client, RPL_TOPIC, chan->getChannelName(),chan->getTopic());
 
-    // Liste des membres
     std::string param = "= " + chan->getChannelName();
     assembleResponse(client, RPL_NAMREPLY, param, chan->listMembers());
     assembleResponse(client, RPL_ENDOFNAMES, chan->getChannelName(), "End of /NAMES list");
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD PRIVMSG  -------------- //
 void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 {
 	if(message.params.size() == 0)
@@ -341,6 +363,8 @@ void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 }
 
 
+// ---------------------------------------------- //
+// ------------------ CMD KICK  ----------------- //
 void cmdKick(Server &serv, Client &client, const Message &message)
 {
 	std::vector<std::string> channels = splitWithComma(message.params[0]);
@@ -403,6 +427,9 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 	}
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD MODE  ----------------- //
 void cmdMode(Server &serv, Client &client, const Message &message)
 {
 	if (message.params[0][0] != '#')
@@ -569,6 +596,9 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 	}
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD NOTICE ---------------- //
 void cmdNotice(Server &serv, Client &client, const Message &message)
 {
 	if(message.params.size() == 0)
@@ -594,6 +624,9 @@ void cmdNotice(Server &serv, Client &client, const Message &message)
 	return;
 }
 
+
+// ---------------------------------------------- //
+// ------------------ CMD PING  ----------------- //
 void cmdPing(Server &serv, Client &client, const Message &message)
 {
 	(void) serv;
