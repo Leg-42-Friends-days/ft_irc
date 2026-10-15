@@ -19,10 +19,10 @@ The server handles client registration, channels, private and public messaging, 
 ## Build
 
 ```bash
-make          # builds ircserv
-make clean    # removes object files
-make fclean   # removes object files and the binary
-make re       # fclean + make
+make
+make clean
+make fclean
+make re
 ```
 
 Flags: `-Wall -Wextra -Werror -std=c++98`

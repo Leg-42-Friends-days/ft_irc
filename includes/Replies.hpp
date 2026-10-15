@@ -1,6 +1,6 @@
 #pragma once
 
-const char * const SERVER_NAME 			= "ircserv";
+const char * const SERVER_NAME 				= "ircserv";
 
 // Reponses enregistrement
 const char * const	RPL_WELCOME 			= "001";

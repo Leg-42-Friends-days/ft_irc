@@ -49,32 +49,32 @@ Server::~Server(void)
 }
 
 // Fonctions GET
-const std::string    &Server::getPort( void )
+const std::string    &Server::getPort(void)
 {
 	return (this->_port);
 }
 
-const int	&Server::getServFd( void )
+const int	&Server::getServFd(void)
 {
 	return (this->_servfd);
 }
 
-std::vector<struct pollfd> &Server::getpollFds( void )
+std::vector<struct pollfd> &Server::getpollFds(void)
 {
 	return (this->_pollFds);
 }
 
-std::map<int, Client*> &Server::getClientRepo( void )
+std::map<int, Client*> &Server::getClientRepo(void)
 {
 	return (this->_clientRepertory);
 }
 
-std::string &Server::getPassword( void )
+std::string &Server::getPassword(void)
 {
 	return (this->_password);
 }
 
-void	Server::initServ( void )
+void	Server::initServ(void)
 {
 	sockaddr_in local;
 	int en = 1;
@@ -133,7 +133,7 @@ void	Server::initServ( void )
 // 	freeaddrinfo(servinfo);
 // }
 
-void	Server::initPollFds( void )
+void	Server::initPollFds(void)
 {
 	std::vector<struct pollfd> pollFds;
 	struct pollfd	servPoll;
@@ -144,7 +144,7 @@ void	Server::initPollFds( void )
 	this->_pollFds = pollFds;
 }
 
-void	Server::addClient( void )
+void	Server::addClient(void)
 {
 	sockaddr_in client_addr;
 	socklen_t client_size = sizeof(client_addr);
@@ -214,7 +214,7 @@ Client* Server::searchClientByNickname(const std::string &nickName)
 	return NULL;
 }
 
-void	Server::deleteFromAllTheChannels( Client *client)
+void	Server::deleteFromAllTheChannels(Client *client)
 {
 	std::map<std::string, Channel*>::iterator	it;
 	it = this->_lobby.begin();
@@ -317,7 +317,7 @@ void Server::callCommand(std::string &buffer, Client* client)
 	dispatcher(*this, *client, msg);
 };
 
-bool	Server::receiveMess( struct pollfd &pollFd)
+bool	Server::receiveMess(struct pollfd &pollFd)
 {
 	char buffer[4096];
 	int message = recv(pollFd.fd, buffer, 4096, 0);
@@ -354,7 +354,7 @@ bool	Server::receiveMess( struct pollfd &pollFd)
 	return false;
 }
 
-Channel*	Server::addChannel( const std::string &channelName )
+Channel*	Server::addChannel(const std::string &channelName )
 {
 	std::string normalizeName = toLower(channelName);
 	Channel	*newChannel = new Channel(channelName);

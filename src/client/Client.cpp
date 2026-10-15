@@ -64,17 +64,17 @@ void Client::setTrueName(const std::string &trueName)
 // --------------------------------------------- //
 // ----------------- ACCESSEURS ---------------- //
 
-bool Client::hasNick() const
+bool Client::hasNick(void) const
 {
     return (this->_hasNick);
 }
 
-bool Client::hasPwd() const
+bool Client::hasPwd(void) const
 {
     return (this->_hasPwd);
 }
 
-bool Client::hasUser() const
+bool Client::hasUser(void) const
 {
     return (this->_hasUser);
 }
@@ -101,7 +101,7 @@ bool Client::extractLineInBuf(std::string &line)
     return true;
 }
 
-bool Client::isBufferAboveSize() const
+bool Client::isBufferAboveSize(void) const
 {
     if(this->_inBuf.size() > 1024)
         return true;
@@ -111,18 +111,18 @@ bool Client::isBufferAboveSize() const
 // ----------------------------------------- //
 // ----------------- OTHERS ---------------- //
 
-std::string Client::prefix() const
+std::string Client::prefix(void) const
 {
     std::string buildPrefix = this->_nickName + '!' + this->_userName + '@' + this->_hostName;
     return buildPrefix;
 }
 
-bool Client::isRegistered() const
+bool Client::isRegistered(void) const
 {
     return(this->_hasPwd && this->_hasNick && this->_hasUser);
 }
 
-void Client::validatePassword()
+void Client::validatePassword(void)
 {
     this->_hasPwd = true;
 }
