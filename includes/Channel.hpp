@@ -16,22 +16,24 @@ class Channel
 		bool					_inviteOnly;
 		std::string				_password;
 		unsigned int			_nbMaxOfClients;
-		Channel( void );
+
+		Channel();
+
 	public:
 		// constructeur
 		Channel(std::string channelName);
 
 		// channels
-		bool	isEmpty(void) const;
+		bool	isEmpty() const;
 		bool	checkpassword(const std::string &password) const;
-		const 	std::string &getChannelName(void) const;
-		bool 	isFull(void) const;
+		const 	std::string &getChannelName() const;
+		bool 	isFull() const;
 
 		// members
 		void	addMember(Client *client);
 		void	removeMember(Client *client);
 		bool	isAMember(Client *client) const;
-		std::string listMembers( void ) const;
+		std::string listMembers() const;
 
 		// operators
 		void	addOperator(Client *client);
@@ -46,17 +48,17 @@ class Channel
 
 		// topic
 		void	setTopic(const std::string &topic);
-		const	std::string	&getTopic(void) const;
-		bool isTopicOpOnly(void) const;
+		const	std::string	&getTopic() const;
+		bool 	isTopicOpOnly() const;
 
 		// modes
 		void	setTopicChangeOperatorsOnly(bool yesno);
 		void	setInviteOnly(bool yesno);
-		bool	isInviteOnly(void) const;
+		bool	isInviteOnly() const;
 		void	setPassword(const std::string &password, bool yesno);
-		bool	isPasswordSet(void) const;
+		bool	isPasswordSet() const;
 		void	setMaxOfClients(const unsigned int &nb, bool yesno);
-		const	std::string modesPrinter(void);
+		const	std::string modesPrinter();
 
 		// diffusion
 		void	broadcast(const std::string &out, const Client *except) const;

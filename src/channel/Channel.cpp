@@ -1,7 +1,7 @@
-#include "../../includes/Server.hpp"
-#include "../../includes/Client.hpp"
-#include "../../includes/Channel.hpp"
-#include "../../includes/Utils.hpp"
+#include "Server.hpp"
+#include "Client.hpp"
+#include "Channel.hpp"
+#include "Utils.hpp"
 
 // --------------------------------------------- //
 // ---------------- CONSTRUCTEUR --------------- //
@@ -249,7 +249,7 @@ const std::string	Channel::modesPrinter(void)
 	std::string	rslt = "+";
 	if (this->isInviteOnly())
 		rslt += "i";
-	if (this->_topic != "")
+	if (this->_topicChangeOperatorsOnly)
 		rslt += "t";
 	if (this->_password != "")
 		rslt += "k";

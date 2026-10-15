@@ -1,134 +1,225 @@
-*This project has been created as part of the 42 curriculum by <ibrouin->, <jlemoine>, <mickzhan>.*
+*This project has been created as part of the 42 curriculum by \<ibrouin\>, \<jlemoine\>, \<mickzhan\>.*
 
-**Description**
+# ft_irc
 
-**Instruction**
+An IRC server written in C++98, compliant with a subset of RFC 2812.
 
-**Ressources**
+---
 
-**Commandes rapides**
+## Description
 
-*Lancement serveur*
-./ircserv <port> <pwd>
+`ircserv` is a single-threaded, event-driven IRC server. It handles multiple simultaneous clients through a single `poll()` call, with no fork and no thread, and every I/O operation set to non-blocking.
 
-*Connexion d'un client*
-nc 127.0.0.1 (ou localhost) <port>
+The server handles client registration, channels, private and public messaging, and operator privileges.
 
-*Verifier connexions actives sur le Port*
+**Reference client:** irssi.
+
+---
+
+## Build
+
+```bash
+make          # builds ircserv
+make clean    # removes object files
+make fclean   # removes object files and the binary
+make re       # fclean + make
+```
+
+Flags: `-Wall -Wextra -Werror -std=c++98`
+
+---
+
+## Usage
+
+```bash
+./ircserv <port> <password>
+```
+
+- `port` — listening port, integer between 1024 and 65535
+- `password` — single server-wide password, required from every client through `PASS`
+
+---
+
+## Architecture
+
+| Layer | Responsibility | Files |
+|---|---|---|
+| **Transport** | socket, `poll()`, input buffers, client lifecycle | `Server.cpp`, `Client.cpp` |
+| **Protocol** | CRLF splitting, parsing into `Message`, dispatch, reply building | `Server::callCommand`, `Command.cpp` |
+| **Domain** | channels, modes, privileges, broadcasting | `Channel.cpp`, handlers |
+
+### Command dispatch
+
+Every command is one entry in a static `CmdInfo` table binding a verb to a function pointer and its metadata:
+
+```
+{ verb, handler, minParams, needsRegister }
+```
+
+The dispatcher uppercases the incoming verb, looks up the matching row, applies the generic checks (`421`, `451`, `461`), then calls the handler. Commands whose missing-parameter case has a dedicated numeric (`NICK` → `431`, `PRIVMSG` → `411`/`412`, `PING` → `409`) declare `minParams = 0` and handle it themselves.
+
+### Framing
+
+TCP is a byte stream with no message boundaries: a single `recv()` may deliver a fraction of one command, or several commands glued together. Each client therefore owns an accumulation buffer (`_inBuf`). On every read, the incoming bytes are appended to that buffer, then complete lines are extracted one at a time for as long as a delimiter is present. Whatever is left without a delimiter waits for the next read.
+
+A safeguard disconnects any client whose buffer grows past 1024 bytes without a delimiter.
+
+---
+
+## Supported commands
+
+| Command | Syntax | Registration required |
+|---|---|---|
+| `PASS` | `PASS <password>` | no |
+| `NICK` | `NICK <nickname>` | no |
+| `USER` | `USER <user> <mode> <unused> :<realname>` | no |
+| `PING` | `PING <token>` | no |
+| `JOIN` | `JOIN <#chan> [<key>]` | yes |
+| `TOPIC` | `TOPIC <#chan> [:<topic>]` | yes |
+| `PRIVMSG` | `PRIVMSG <target> :<text>` | yes |
+| `NOTICE` | `NOTICE <target> :<text>` | yes |
+| `INVITE` | `INVITE <nick> <#chan>` | yes |
+| `KICK` | `KICK <#chan> <nick> [:<reason>]` | yes |
+| `MODE` | `MODE <#chan> <+\|-flags> [args]` | yes |
+
+### Registration
+
+`PASS`, `NICK` and `USER` must all be supplied, in any order. As soon as the three are validated, the server emits numerics `001` through `004`. Any other command sent before that point is answered with `451`.
+
+```
+PASS mypassword
+NICK julio
+USER ju 0 * :Julio D
+     ^^ ^ ^  ^^^^^^^
+     |  | |  realname — trailing, free text, spaces allowed
+     |  | unused — historically a hostname, ignored, send *
+     |  mode — RFC 2812 bitmask, unused, send 0
+     username — second field of the nick!user@host prefix
+```
+
+### Channel modes
+
+| Mode | Effect | Argument | Error |
+|---|---|---|---|
+| `+i` | invite-only | — | `473` |
+| `+t` | topic restricted to operators | — | `482` |
+| `+k` | channel key | on `+` only | `475` |
+| `+o` | grant/revoke operator status | always | `441` |
+| `+l` | member limit | on `+` only | `471` |
+
+The sign persists until the next one appears, and arguments are consumed in order by the flags that require one.
+
+---
+
+## Frame formats
+
+Two families of outgoing frames, not to be confused.
+
+**Numeric** — the server answers **one** client. The first parameter is always the recipient's nick (or `*` when they do not have one yet).
+
+```
+:ircserv 332 julio #dev :parser rewrite
+```
+
+**Relay** — the server notifies a **group** that a user acted. No numeric code: the verb that was received, prefixed with the author's prefix.
+
+```
+:julio!ju@127.0.0.1 PRIVMSG #dev :hello
+```
+
+In other words, the outgoing frame is the incoming frame with the author's prefix prepended.
+
+### Broadcast rules
+
+| Commands | Recipients |
+|---|---|
+| `PRIVMSG`, `NOTICE` | every member **except** the author |
+| `JOIN`, `PART`, `QUIT`, `KICK`, `TOPIC`, `MODE` | every member, **author included** |
+
+The author must receive the events that concern them: that is how their client updates its member list and its title bar.
+
+### Handler execution order
+
+```
+validate → build the frame → broadcast → mutate state
+```
+
+Broadcasting before mutating guarantees that the target of a `KICK` actually receives the notification of its own removal.
+
+### `NOTICE`: never any automatic reply
+
+`NOTICE` does exactly what `PRIVMSG` does, with one rule on top: **no error reply is ever emitted**, neither by the server nor by a bot. That rule prevents two bots from answering each other indefinitely. `PRIVMSG`, by contrast, does return its errors (`401`, `403`, `404`, `411`, `412`).
+
+---
+
+## Useful commands
+
+**Connecting a client**
+```bash
+nc 127.0.0.1 (or localhost) <port>
+irssi -c 127.0.0.1 (or localhost) -p <port> -w <password>
+```
+
+**One-liner handshake**
+```bash
+printf 'PASS <pwd>\r\nNICK julio\r\nUSER ju 0 * :Julio D\r\n' | nc -i 2 127.0.0.1 <port>
+```
+
+**Active connections on the port**
+```bash
 lsof -i :<port>
+ss -ltnp 'sport = :<port>'
+```
 
-*Forcer la Fermeture des Processus Actifs sur le Port <port>*
+**Killing processes holding the port**
+```bash
+pkill -f ircserv
 kill -9 $(lsof -t -i :<port>)
+```
 
-*Verifier fuites memoires et fd actifs*
+**Memory and descriptor leaks**
+```bash
 valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes ./ircserv <port> <password>
+```
 
-*Enregistrement d'un client*
-- NICK <nickname>
--> Mettre simplement le surnom/nom du client
-=> "NICK Julio"
+---
 
-- PWD <password>
--> Entrer le mot de passe du serveur
+## Test suite — parsing
 
-- USER (doit respecter un certain nombre de regles)
-=> "USER ju 0 * :Julio"
-		 ^^ ^ ^  ^^^^^^^
-		 |  | |  *realname* (trailing, libre, espaces autorisés)
-		 |  | *unused* — historiquement un hostname, ignoré, mets *
-		 |  *mode* — bitmask RFC 2812, personne ne l'utilise, mets 0
-		 *username* — celui du préfixe nick!user@host
+Each line must produce the expected decomposition. The trailing is stored in the parameter vector without its `:`, and an empty trailing still counts as one parameter.
 
-- JOIN <channel>
--> Si le channel n'existe pas, le creer et en devenir operator
--> Si le channel existe, le rejoindre en simple membre
+| Frame | `cmd` | `params` |
+|---|---|---|
+| `JOIN #dev` | `JOIN` | `["#dev"]` |
+| `PRIVMSG #dev :hello everyone` | `PRIVMSG` | `["#dev", "hello everyone"]` |
+| `TOPIC #dev` | `TOPIC` | `["#dev"]` |
+| `TOPIC #dev :` | `TOPIC` | `["#dev", ""]` |
+| `NICK` | `NICK` | `[]` |
+| `PRIVMSG #dev ::double` | `PRIVMSG` | `["#dev", ":double"]` |
+| `JOIN    #dev` | `JOIN` | `["#dev"]` |
+| `:julio!ju@host PRIVMSG #dev :hi` | `PRIVMSG` | `["#dev", "hi"]` |
+| `KICK #dev bob :repeated flood` | `KICK` | `["#dev", "bob", "repeated flood"]` |
 
-- PRIVMSG <message target> :<message>
--> message target  peut aussi bien etre un channel qu'un user (commence par un # si c'est un channel)
--> le serveur renvoie : "julio!ju@127.0.0.1 PRIVMSG #dev :salut" (ajout du prefixe source, le txt est jamais touche)
--> attention le message ne doit pas etre renvoyer a son auteur
--> si erreur (canal inexistant ou introuvable, pas de texte), il ne faut pas renvoyer de message derreur, il faut ignorer silencieusement
+The two `TOPIC` lines are the decisive ones: `TOPIC #dev` **queries** the topic, `TOPIC #dev :` **clears** it. Conflating absent with empty makes clearing impossible.
 
+---
 
-**Tests parsing commandes**
-PRIVMSG #dev :salut à tous
-JOIN #dev
-KICK #dev bob :flood repete
-MODE #dev +o bob
-TOPIC #dev
-TOPIC #dev :
-NICK
-PRIVMSG
-:julio!ju@host PRIVMSG #dev :coucou
-PRIVMSG #dev ::double deux points
-JOIN    #dev
+## Test suite — behaviour
 
-**Methode de parsing**
-1. si sa commence par ':' -> c'est un [prefixe], go ignorer/skip on en a pas besoin
-	si sa commence pas par ':', extraire la [command] jusquau prochain espace
-2. boucler sur creation de token [params] tant quil y a des espaces entre chaque, sauf si on trouve un ':' a ce moment il faut recuperer tout ce quil y a derriere dans un seul bloc (et skip le ':', on ne le garde pas dans les params envoyees).
-* si le parametre est vide apres un ':', bien mettre une chaine nulle/vide c'est important pour la suite (exemple "TOPIC #dev :" signifie supprime le topic, donc si ':' sans rien derriere il faut quand meme lenregistrer pour le detecter)
+- Two clients exchanging private and channel messages
+- Operator versus plain member on `KICK`, `TOPIC` under `+t`, `MODE`
+- Every mode exercised in both directions
+- Abrupt disconnection (`kill -9` on the client) without crashing the server
+- Fragmented command: partial input, pause, then completion
+- Several commands inside a single packet
+- Ctrl+C on the server: clean shutdown, port immediately reusable
+- No descriptor left open
 
-* handler cmd TOPIC doit verifier existence du canal (sinon 403), si lauteur en est membre (sinon 402), si t+ est actif (necessaire pour ecrire et non juste consulter) et lauteur non operateur -> renvoyer 482
+---
 
-**Deux types de trames sortantes**
-- les numeriques -> pour le serveur qui repond a un client
-- les relais -> pour le serveur qui notifie un groupe qu'un utilisateur a fait quelque chose, pas de code numerique ici mais on ajoute le prefixe de l'auteur de l'action notifier ([prefixe source] [cmd] [canal] [trailing] [\r\n]), autrement dit la trame sortante cest la trame entrante avec un prefixe devant
-* Diffusion : PRIVMSG et NOTICE excluent l'auteur. JOIN,PART, QUIT, KICK, TOPIC, MODE incluent l'auteur.
-* Ordre : valider -> construire trame -> diffuser -> modifier l'etat
+## Resources
 
-*NUMERIQUES UTILES*
+- [RFC 2812 — IRC Client Protocol](https://datatracker.ietf.org/doc/html/rfc2812)
+- [RFC GLOBAL - Response codes](https://alien.net.au/irc/irc2numerics.html)
+- [Modern IRC Documentation](https://modern.ircdocs.horse/)
 
-// Reponses enregistrement
-001	RPL_WELCOME
-002	RPL_YOURHOST
-003	RPL_CREATED
-004 RPL_MYINFO
-
-// Reponse de commandes
-324	RPL_CHANNELMODEIS
-331	RPL_NOTOPIC (le canal n'a pas de topic)
-332	RPL_TOPIC (le canal a un topic)
-341	RPL_INVITING
-353	RPL_NAMREPLY
-366	RPL_ENDOFNAMES
-
-// Erreurs de cible
-401	ERR_NOSUCHNICK
-403	ERR_NOSUCHCHANNEL
-404	ERR_CANNOTSENDTOCHAN
-411	ERR_NORECIPIENT
-412	ERR_NOTEXTTOSEND
-
-// Erreur de commande
-421	ERR_UNKNOWNCOMMAND
-461	ERR_NEEDMOREPARAMS
-
-// Erreur de nickname
-431	ERR_NONICKNAMEGIVEN // empty
-432	ERR_ERRONEUSNICKNAME // pb format
-433	ERR_NICKNAMEINUSE // deja use
-
-// Erreur d'appartenance au canal (Attention a ne pas confondre les trois)
-441	ERR_USERNOTINCHANNEL
-442	ERR_NOTONCHANNEL
-443	ERR_USERONCHANNEL
-
-// Erreur d'authentification
-451	ERR_NOTREGISTERED
-462	ERR_ALREADYREGISTRED
-464	ERR_PASSWDMISMATCH
-
-// Erreurs liees aux modes de canal
-471	ERR_CHANNELISFULL
-472	ERR_UNKNOWNMODE
-473	ERR_INVITEONLYCHAN
-475	ERR_BADCHANNELKEY
-476	ERR_BADCHANMASK (pas de #, caracteres interdits, peut renvoyer 403 a la place)
-482	ERR_CHANOPRIVSNEEDED
-
-
-
-:ircserv 375 Julio :- ircserv Message of the Day -
-:ircserv 372 Julio :- Welcome to our IRC server!
-:ircserv 376 Julio :End of /MOTD command.

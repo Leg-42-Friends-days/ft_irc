@@ -34,25 +34,3 @@ bool	isOnlyDigits(const std::string &str)
 	}
 	return (1);
 }
-
-// Fonction qui assemble la struct message en une seule ligne
-std::string convertToLine(const Message &message)
-{
-	std::string line;
-	for (size_t i = 3; i < message.params.size(); i++)
-	{
-		line += message.params[i];
-		if (i != message.params.size())
-			line += " ";
-	}
-
-	return (line);
-}
-
-// Fonction qui verifie si une string commence par ':'
-bool checkDot(const std::string &buffer)
-{
-	if (buffer[0] == ':')
-		return (true);
-	return false;
-}

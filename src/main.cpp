@@ -1,5 +1,6 @@
-#include "../includes/Server.hpp"
-#include "../includes/Parser.hpp"
+#include "Server.hpp"
+#include "Parser.hpp"
+#include "Utils.hpp"
 
 volatile sig_atomic_t g_running = 1;
 
@@ -22,6 +23,7 @@ void	init_signals(void)
 	sigaction(SIGPIPE, &sa, NULL);
 }
 
+// Boucle principale : attend un event sur les fd surveilles et l'envoi vers accept ou recv, jusqu'a reception d'un signal
 void	pollLoop(Server &serv)
 {
 	while (g_running == 1)
@@ -94,6 +96,7 @@ int main(int ac, char **av)
 	try
 	{
 		serv.initServ();
+		std::cerr << "Server is listening to you baby" << std::endl;
 		serv.initPollFds();
 		pollLoop(serv);
 	}

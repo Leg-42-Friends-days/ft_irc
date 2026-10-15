@@ -7,32 +7,43 @@
 class Server
 {
 	private:
-		std::string 					_portIP;
+		std::string 					_port;
 		std::string 					_password;
 		int								_servfd;
 		std::vector<struct pollfd>		_pollFds;
 		std::map<int, Client*>			_clientRepertory;
 		std::map<std::string, Channel*>	_lobby;
-		Server(void);
+
+		Server();
 
 	public:
+		// constructeurs
 		Server(char **av);
-		~Server(void);
-		const std::string	&getPortIP( void );
-		const int	&getServFd( void );
-		std::vector<struct pollfd> &getpollFds( void );
-		std::map<int, Client*> &getClientRepo( void );
-		std::string &getPassword( void );
-		void	initServ( void );
-		void	initPollFds( void );
-		void	addClient( void );
-		void	deleteClient(Client *client);
-		Client* searchClientByNickname(const std::string &nickName);
-		bool	receiveMess(struct pollfd &pollFd);
-		void	callCommand(std::string &buffer, Client* client);
-		//Channel
-		Channel*	addChannel( const std::string &channelName );
-		Channel* 	searchChannel(const std::string &channelName);
-		void	deleteFromAllTheChannels( Client *client);
-		void	broadcastToMemberInChannels(Client *client, const std::string &out);
+		~Server();
+
+		// getters
+		const std::string			&getPort();
+		const int					&getServFd();
+		std::vector<struct pollfd> 	&getpollFds();
+		std::map<int, Client*> 		&getClientRepo();
+		std::string 				&getPassword();
+
+		// init
+		void						initServ();
+		void						initPollFds();
+
+		// clients
+		void						addClient();
+		void						deleteClient(Client *client);
+		Client* 					searchClientByNickname(const std::string &nickName);
+
+		// channel
+		Channel*					addChannel(const std::string &channelName);
+		Channel* 					searchChannel(const std::string &channelName);
+		void						deleteFromAllTheChannels( Client *client);
+		void						broadcastToMemberInChannels(Client *client, const std::string &out);
+
+		// others
+		void						callCommand(std::string &buffer, Client* client);
+		bool						receiveMess(struct pollfd &pollFd);
 };

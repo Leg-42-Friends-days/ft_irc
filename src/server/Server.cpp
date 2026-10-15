@@ -1,13 +1,13 @@
-#include "../../includes/Server.hpp"
-#include "../../includes/Client.hpp"
-#include "../../includes/Channel.hpp"
-#include "../../includes/Message.hpp"
-#include "../../includes/Parser.hpp"
-#include "../../includes/Command.hpp"
-#include "../../includes/Utils.hpp"
+#include "Server.hpp"
+#include "Client.hpp"
+#include "Channel.hpp"
+#include "Message.hpp"
+#include "Parser.hpp"
+#include "Command.hpp"
+#include "Utils.hpp"
 
 // Constructeur
-Server::Server(char **av) : _portIP(av[1]) , _password(av[2])
+Server::Server(char **av) : _port(av[1]) , _password(av[2])
 {}
 
 // Destructeur
@@ -49,9 +49,9 @@ Server::~Server(void)
 }
 
 // Fonctions GET
-const std::string    &Server::getPortIP( void )
+const std::string    &Server::getPort( void )
 {
-	return (this->_portIP);
+	return (this->_port);
 }
 
 const int	&Server::getServFd( void )
@@ -76,15 +76,15 @@ std::string &Server::getPassword( void )
 
 void	Server::initServ( void )
 {
-	addrinfo	hint;
-	addrinfo	*servinfo;
-	std::memset(&hint, 0, sizeof(hint));
-	int			en = 1;
-	hint.ai_family = AF_UNSPEC;
-	hint.ai_socktype = SOCK_STREAM;
-	hint.ai_flags = AI_PASSIVE;
-	int status = getaddrinfo(NULL, this->_portIP.c_str(), &hint, &servinfo);
-	(void)status;
+	sockaddr_in local;
+	int en = 1;
+	memset(&local, 0, sizeof(local));
+	local.sin_family = AF_INET;
+	local.sin_addr.s_addr = htonl(INADDR_ANY);
+	std::istringstream iss(this->_port);
+	int port = 0;
+	iss >> port;
+	local.sin_port = htons(port);
 
 	this->_servfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_servfd == -1)
@@ -92,16 +92,46 @@ void	Server::initServ( void )
 	if (setsockopt(this->_servfd, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1)
 		throw std::runtime_error("setsockopt() error during configuration of the socket");
 
-	fcntl(this->_servfd, F_SETFL, O_NONBLOCK);
+	if(fcntl(this->_servfd, F_SETFL, O_NONBLOCK) == -1)
+		throw std::runtime_error("fcntl() failed");
 
-	if (bind(this->_servfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
-		throw std::runtime_error("bind() failed on port " + this->_portIP);
+	if (bind(this->_servfd, (struct sockaddr *)&local, sizeof(local)) == -1)
+		throw std::runtime_error("bind() failed on port " + this->_port);
 
 	if (listen(this->_servfd, SOMAXCONN) == -1)
 		throw std::runtime_error("listen() error during linking of the socket : " + std::string(strerror(errno)));
 
-	freeaddrinfo(servinfo);
 }
+
+// void	Server::initServ( void )
+// {
+// 	addrinfo	hint;
+// 	addrinfo	*servinfo;
+// 	std::memset(&hint, 0, sizeof(hint));
+// 	int			en = 1;
+// 	hint.ai_family = AF_INET;
+// 	hint.ai_socktype = SOCK_STREAM;
+// 	hint.ai_flags = AI_PASSIVE;
+// 	int status = getaddrinfo(NULL, this->_port.c_str(), &hint, &servinfo);
+// 	(void)status;
+
+// 	this->_servfd = socket(AF_INET, SOCK_STREAM, 0);
+// 	if (this->_servfd == -1)
+// 		throw std::runtime_error("socket() error during creation");
+// 	if (setsockopt(this->_servfd, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1)
+// 		throw std::runtime_error("setsockopt() error during configuration of the socket");
+
+// 	if(fcntl(this->_servfd, F_SETFL, O_NONBLOCK) == -1)
+// 		throw std::runtime_error("fcntl() failed");
+
+// 	if (bind(this->_servfd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
+// 		throw std::runtime_error("bind() failed on port " + this->_port);
+
+// 	if (listen(this->_servfd, SOMAXCONN) == -1)
+// 		throw std::runtime_error("listen() error during linking of the socket : " + std::string(strerror(errno)));
+
+// 	freeaddrinfo(servinfo);
+// }
 
 void	Server::initPollFds( void )
 {
@@ -121,10 +151,16 @@ void	Server::addClient( void )
     int clientFd = accept(this->_servfd, (sockaddr *) &client_addr, &client_size);
 	if (clientFd == -1)
 	{
-		perror("accept");
+		std::cerr << "accept() failed" << std::endl;
 		return;
 	}
-	fcntl(clientFd, F_SETFL, O_NONBLOCK);
+
+	if(fcntl(clientFd, F_SETFL, O_NONBLOCK) == -1)
+	{
+		std::cerr << "fcntl failed" << std::endl;
+		close(clientFd);
+		return;
+	}
 	Client	*newClient = new Client(clientFd, inet_ntoa(client_addr.sin_addr));
 	this->_clientRepertory.insert(std::pair<int, Client*>(clientFd, newClient));
 	struct pollfd	clientPoll;
@@ -132,8 +168,7 @@ void	Server::addClient( void )
 	clientPoll.events = POLLIN;
 	clientPoll.revents = 0;
 	this->_pollFds.push_back(clientPoll);
-	const char* msg = "Welcome to the IRC server !\n";
-	send(clientFd, msg, std::strlen(msg), 0);
+	std::cerr << "Client " << newClient->getFdClient() << " is connected" << std::endl;
 }
 
 void	Server::deleteClient(Client *client)
@@ -153,9 +188,9 @@ void	Server::deleteClient(Client *client)
 	}
 	close(fd);
 	if (client->getNickName().empty())
-		std::cout << "Client " << client->getFdClient() << " Disconnected" << "\n";
+		std::cerr << "Client " << client->getFdClient() << " Disconnected" << std::endl;
 	else
-		std::cout << "Client " << client->getNickName() << " Disconnected" << "\n";
+		std::cerr << "Client " << client->getNickName() << " Disconnected" << std::endl;
 	std::map<int, Client*>::iterator	it_client;
 	it_client = this->_clientRepertory.find(fd);
 	if (it_client == this->_clientRepertory.end())
@@ -224,20 +259,61 @@ void	Server::broadcastToMemberInChannels(Client *client, const std::string &out)
 
 void Server::callCommand(std::string &buffer, Client* client)
 {
+
 	std::string line = trim(buffer);
 
+	if (line.empty())
+		return;
 	if (line[0] == ':')
 		line = checkPrefix(line);
-	std::stringstream stream(line);
 
 	Message msg;
-	std::string content;
+	std::string extract;
+	size_t space = 0;
 
-	stream >> msg.cmd;
+	while (!line.empty())
+	{
+		if(line[0] == ':')
+		{
+			extract = line.substr(1);
+			msg.params.push_back(extract);
+			break;
+		}
+		space = line.find(' ');
+		if(space == std::string::npos)
+		{
+			if(msg.cmd.empty())
+			{
+				extract = line.substr(0);
+				msg.cmd = extract;
+				break;
+			}
+			else
+			{
+				extract = line.substr(0);
+				msg.params.push_back(extract);
+				break;
+			}
+		}
+		else
+		{
+			if(msg.cmd.empty())
+			{
+				extract = line.substr(0, space);
+				msg.cmd = extract;
+				line.erase(0, space);
+			}
+			else
+			{
+				extract = line.substr(0, space);
+				msg.params.push_back(extract);
+				line.erase(0, space);
+			}
+			while (!line.empty() && line[0] == ' ')
+				line.erase(0, 1);
+		}
 
-	while (stream >> content)
-	msg.params.push_back(content);
-
+	}
 	dispatcher(*this, *client, msg);
 };
 
