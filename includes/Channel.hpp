@@ -31,20 +31,20 @@ class Channel
 
 		// members
 		void	addMember(Client *client);
-		void	removeMember(Client *client);
-		bool	isAMember(Client *client) const;
+		void	removeMember(const Client &client);
+		bool	isAMember(const Client &client) const;
 		std::string listMembers() const;
 
 		// operators
 		void	addOperator(Client *client);
-		void	removeOperators(Client *client);
-		bool	isOperator(Client *client) const;
+		void	removeOperator(const Client &client);
+		bool	isOperator(const Client &client) const;
 
 		// invited
-		bool	isInvited(Client *client) const;
+		bool	isInvited(const Client &client) const;
 		int		invite(Client *inviter, Client *guest);
 		int		addInvite (Client *client );
-		void	removeInvited(Client *client );
+		void	removeInvited(const Client &client);
 
 		// topic
 		void	setTopic(const std::string &topic);

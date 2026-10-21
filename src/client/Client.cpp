@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include "Server.hpp"
+#include "Replies.hpp"
 
 // ---------------------------------------------- //
 // ---------------- CONSTRUCTEURS --------------- //
@@ -11,6 +12,7 @@ _userName(""),
 _hostName(host),
 _trueName(""),
 _inBuf(""),
+_outBuf(""),
 _hasPwd(false),
 _hasNick(false),
 _hasUser(false)
@@ -107,6 +109,34 @@ bool Client::isBufferAboveSize(void) const
         return true;
     return false;
 }
+
+void Client::addOutBuf(const std::string &data)
+{
+    this->_outBuf += data;
+}
+
+bool Client::hasOutput() const
+{
+    return !_outBuf.empty();
+}
+
+const std::string &Client::getOutBuf() const
+{
+    return _outBuf;
+}
+
+void Client::consumeOutBuf(size_t n)
+{
+    _outBuf.erase(0, n);
+}
+
+bool Client::isOutBufAboveSize() const
+{
+    return _outBuf.size() > MAX_SENDQ;
+}
+
+
+
 
 // ----------------------------------------- //
 // ----------------- OTHERS ---------------- //

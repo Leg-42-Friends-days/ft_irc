@@ -28,7 +28,7 @@ void	pollLoop(Server &serv)
 {
 	while (g_running == 1)
 	{
-
+		serv.updatePollEvents();
 		int	pollCount = poll(&serv.getpollFds()[0], serv.getpollFds().size(), -1);
 		if (pollCount == -1)
 		{
@@ -40,10 +40,17 @@ void	pollLoop(Server &serv)
 				break;
 			}
 		}
+
 		size_t	i = 0;
 		while (i < serv.getpollFds().size())
 		{
-			if (serv.getpollFds()[i].revents & POLLIN)
+			if (serv.getpollFds()[i].revents & POLLOUT)
+			{
+				if(serv.sendMess(serv.getpollFds()[i]))
+					continue;
+			}
+
+			if (serv.getpollFds()[i].revents & (POLLIN | POLLHUP | POLLERR | POLLNVAL))
 			{
 				if (serv.getpollFds()[i].fd == serv.getServFd())
 				{

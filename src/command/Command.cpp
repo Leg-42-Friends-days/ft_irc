@@ -26,7 +26,7 @@ static const CmdInfo cmdInfo[] = {
 // ---------------------------------------------- //
 // ------------------ RESPONSES  ---------------- //
 
-void assembleResponse(const Client &client, const char * code, const std::string &param, const std::string &text)
+void assembleResponse(Client &client, const char * code, const std::string &param, const std::string &text)
 {
 	std::ostringstream line;
 	line << ':' << SERVER_NAME << " " << code << " " << nickOrStar(client);
@@ -34,10 +34,10 @@ void assembleResponse(const Client &client, const char * code, const std::string
 		line << " " << param;
 	if (!text.empty())
 		line << " :" << text;
-	sendResponse(client, line.str());
+	queueResponse(client, line.str());
 }
 
-void sendWelcome(const Client &client)
+void sendWelcome(Client &client)
 {
 	assembleResponse(client, RPL_WELCOME, "", "Welcome to IRC Network " + client.prefix());
 	assembleResponse(client, RPL_YOURHOST, "", "Your host is Ici Rien ne Crash, running version v1");
@@ -119,7 +119,7 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 	if(isAlreadyRegistered)
 	{
 		std::string line = ":" + oldPrefix + " NICK :" + client.getNickName();
-		sendResponse(client, line);
+		queueResponse(client, line);
 		serv.broadcastToMemberInChannels(&client, line);
 		return;
 	}
@@ -188,7 +188,7 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 	    return;
     }
 
-	if(!chan->isAMember(&client))
+	if(!chan->isAMember(client))
 	{
 	    assembleResponse(client, ERR_NOTONCHANNEL, chan->getChannelName(), "You're not on that channel");
 	    return;
@@ -208,7 +208,7 @@ void cmdTopic(Server &serv, Client &client, const Message &message)
 		}
 	}
 
-	if(chan->isTopicOpOnly() && !chan->isOperator(&client))
+	if(chan->isTopicOpOnly() && !chan->isOperator(client))
 	{
 		assembleResponse(client, ERR_CHANOPRIVSNEEDED, chan->getChannelName(), "You're not channel operator");
 		return;
@@ -257,7 +257,7 @@ void cmdInvite(Server &serv, Client &client, const Message &message)
 		return;
 	case 0:
 		assembleResponse(client, RPL_INVITING, message.params[0] + " " + message.params[1], "");
-		sendResponse(*invited, ":" + client.prefix() + " INVITE " + message.params[0] + " " + message.params[1]);
+		queueResponse(*invited, ":" + client.prefix() + " INVITE " + message.params[0] + " " + message.params[1]);
 		return;
 	}
 }
@@ -286,7 +286,7 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
             assembleResponse(client, ERR_CHANNELISFULL, chan->getChannelName(), "Channel is full");
             return;
         }
-        if(chan->isInviteOnly() && !chan->isInvited(&client))
+        if(chan->isInviteOnly() && !chan->isInvited(client))
         {
             assembleResponse(client, ERR_INVITEONLYCHAN, chan->getChannelName(), "Channel is set on invited only");
             return;
@@ -304,7 +304,7 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
         }
     }
     chan->addMember(&client);
-    chan->removeInvited(&client);
+    chan->removeInvited(client);
 
     std::string out = ":" + client.prefix() + " JOIN " + chan->getChannelName();
     chan->broadcast(out, NULL);
@@ -324,7 +324,7 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
 // ------------------ CMD PRIVMSG  -------------- //
 void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 {
-	if(message.params.size() == 0)
+	if(message.params.size() == 0 || message.params[0].empty())
 	{
 		assembleResponse(client, ERR_NORECIPIENT, "", "No recipient given (PRIVMSG)");
 		return;
@@ -342,7 +342,7 @@ void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 			assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[0], "No such channel");
 			return ;
 		}
-		if(!chan->isAMember(&client))
+		if(!chan->isAMember(client))
 		{
 			assembleResponse(client, ERR_CANNOTSENDTOCHAN, message.params[0], "Cannot send to channel");
 			return ;
@@ -358,7 +358,7 @@ void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 		return;
 	}
 	std::string out = ":" + client.prefix() + " PRIVMSG " + receiver->getNickName() + " :" + message.params[1];
-	sendResponse(*receiver, out);
+	queueResponse(*receiver, out);
 	return;
 }
 
@@ -386,13 +386,13 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 			chan_i++;
 			continue;
 		}
-		if (!chan->isAMember(&client))
+		if (!chan->isAMember(client))
 		{
 			assembleResponse(client, ERR_NOTONCHANNEL, chan->getChannelName(), "You're not on that channel");
 			chan_i++;
 			continue;
 		}
-		if (!chan->isOperator(&client))
+		if (!chan->isOperator(client))
 		{
 			assembleResponse(client, ERR_CHANOPRIVSNEEDED, chan->getChannelName(), "You're not channel operator");
 			chan_i++;
@@ -403,13 +403,13 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 			Client *user = serv.searchClientByNickname(users[user_i]);
 			if (user == NULL)
 			{
-				assembleResponse(client, ERR_NOSUCHNICK, message.params[0], "No such nick/channel");
+				assembleResponse(client, ERR_NOSUCHNICK, users[user_i], "No such nick/channel");
 				user_i++;
 				continue;
 			}
-			if (!chan->isAMember(user))
+			if (!chan->isAMember(*user))
 			{
-				assembleResponse(client, ERR_USERNOTINCHANNEL, client.getNickName() + " " + users[user_i] + " " + channels[chan_i], "They aren't on that channel");
+				assembleResponse(client, ERR_USERNOTINCHANNEL, users[user_i] + " " + channels[chan_i], "They aren't on that channel");
 				user_i++;
 				continue;
 			}
@@ -419,7 +419,7 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 			else
 				out = ":" + client.prefix() + " KICK " + chan->getChannelName() + " " + user->getNickName();
    			chan->broadcast(out, NULL);
-			chan->removeMember(user);
+			chan->removeMember(*user);
 			user_i++;
 		}
 		user_i = 0;
@@ -443,15 +443,15 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 		assembleResponse(client, ERR_NOSUCHCHANNEL, message.params[0], "No such channel");
 		return;
 	}
-	if (!chan->isOperator(&client))
-	{
-		assembleResponse(client, ERR_CHANOPRIVSNEEDED, chan->getChannelName(), "You're not channel operator");
-		return;
-	}
 	if (message.params.size() == 1)
 	{
 		std::string	out = chan->modesPrinter();
-		assembleResponse(client, RPL_CHANNELMODEIS, chan->getChannelName(), out);
+		assembleResponse(client, RPL_CHANNELMODEIS, chan->getChannelName() + " " + out, "");
+		return;
+	}
+	if (!chan->isOperator(client))
+	{
+		assembleResponse(client, ERR_CHANOPRIVSNEEDED, chan->getChannelName(), "You're not channel operator");
 		return;
 	}
 	std::string mode = message.params[1];
@@ -539,13 +539,13 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 			Client *invited = serv.searchClientByNickname(message.params[i_params]);
 			if (invited == NULL)
 			{
-				assembleResponse(client, ERR_NOSUCHNICK, message.params[0], "No such nick/channel");
+				assembleResponse(client, ERR_NOSUCHNICK, message.params[i_params], "No such nick/channel");
 				break;
 			}
 			i_params++;
 			if (sign == '+')
 			{
-				if (!chan->isAMember(invited))
+				if (!chan->isAMember(*invited))
 				{
 					assembleResponse(client, ERR_USERNOTINCHANNEL, invited->getNickName() + " " + message.params[0], "They aren't on that channel");
 					break;
@@ -556,7 +556,12 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 			}
 			if (sign == '-')
 			{
-				chan->removeOperators(invited);
+				if (!chan->isAMember(*invited))
+				{
+					assembleResponse(client, ERR_USERNOTINCHANNEL, invited->getNickName() + " " + message.params[0], "They aren't on that channel");
+					break;
+				}
+				chan->removeOperator(*invited);
 				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -o " + invited->getNickName();
 				chan->broadcast(out, NULL);
 			}
@@ -610,7 +615,7 @@ void cmdNotice(Server &serv, Client &client, const Message &message)
 		Channel * chan = serv.searchChannel(message.params[0]);
 		if (chan == NULL)
 			return ;
-		if(!chan->isAMember(&client))
+		if(!chan->isAMember(client))
 			return ;
 		std::string out = ":" + client.prefix() + " NOTICE " + chan->getChannelName() + " :" + message.params[1];
 		chan->broadcast(out, &client);
@@ -620,7 +625,7 @@ void cmdNotice(Server &serv, Client &client, const Message &message)
 	if (receiver == NULL)
 		return;
 	std::string out = ":" + client.prefix() + " NOTICE " + receiver->getNickName() + " :" + message.params[1];
-	sendResponse(*receiver, out);
+	queueResponse(*receiver, out);
 	return;
 }
 
@@ -636,6 +641,6 @@ void cmdPing(Server &serv, Client &client, const Message &message)
 		return;
 	}
 	std::string out = ":" + std::string(SERVER_NAME) + " PONG " + SERVER_NAME + " :" + message.params[0];
-	sendResponse(client, out);
+	queueResponse(client, out);
 }
 
