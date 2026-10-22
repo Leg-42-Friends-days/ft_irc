@@ -4,10 +4,11 @@
 #include "Utils.hpp"
 
 // Fonction qui ajoute \r\n a a fin d'une reponse
-void sendResponse(const Client &client, std::string line)
+void queueResponse(Client &client, std::string line)
 {
-    line = line + "\r\n";
-    send(client.getFdClient(), line.c_str(), line.size(), 0);
+	client.addOutBuf(line + "\r\n");
+    // line = line + "\r\n";
+    // send(client.getFdClient(), line.c_str(), line.size(), 0);
 }
 
 // Fonction qui passe tous les characteres d'une string en minuscule

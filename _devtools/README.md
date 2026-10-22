@@ -44,7 +44,7 @@ Flags: `-Wall -Wextra -Werror -std=c++98`
 
 | Layer | Responsibility | Files |
 |---|---|---|
-| **Transport** | socket, `poll()`, input buffers, client lifecycle | `Server.cpp`, `Client.cpp` |
+| **Transport** | socket, `poll()`, input and output buffers, client lifecycle | `Server.cpp`, `Client.cpp` |
 | **Protocol** | CRLF splitting, parsing into `Message`, dispatch, reply building | `Server::callCommand`, `Command.cpp` |
 | **Domain** | channels, modes, privileges, broadcasting | `Channel.cpp`, handlers |
 
@@ -63,6 +63,20 @@ The dispatcher uppercases the incoming verb, looks up the matching row, applies 
 TCP is a byte stream with no message boundaries: a single `recv()` may deliver a fraction of one command, or several commands glued together. Each client therefore owns an accumulation buffer (`_inBuf`). On every read, the incoming bytes are appended to that buffer, then complete lines are extracted one at a time for as long as a delimiter is present. Whatever is left without a delimiter waits for the next read.
 
 A safeguard disconnects any client whose buffer grows past 1024 bytes without a delimiter.
+
+### Output buffering
+
+No handler writes to a socket. Every reply is appended to the recipient's
+output buffer, and a single `send()` — in `sendMess`, called from the poll
+loop — drains it when `poll()` reports the socket writable. `POLLOUT` is
+armed only while a client's buffer holds data, so an idle server still
+blocks in `poll()` instead of spinning.
+
+`send()` may accept only part of the buffer: exactly the number of bytes
+written is consumed, and the remainder waits for the next `POLLOUT`. A
+client whose output buffer grows past `MAX_SENDQ` (1 MiB) is disconnected,
+which bounds the server's memory to one buffer per client instead of
+letting a client that never reads grow it without limit.
 
 ---
 
@@ -134,7 +148,7 @@ In other words, the outgoing frame is the incoming frame with the author's prefi
 | Commands | Recipients |
 |---|---|
 | `PRIVMSG`, `NOTICE` | every member **except** the author |
-| `JOIN`, `PART`, `QUIT`, `KICK`, `TOPIC`, `MODE` | every member, **author included** |
+| `JOIN`, `KICK`, `TOPIC`, `MODE` | every member, **author included** |
 
 The author must receive the events that concern them: that is how their client updates its member list and its title bar.
 
@@ -214,6 +228,8 @@ The two `TOPIC` lines are the decisive ones: `TOPIC #dev` **queries** the topic,
 - Several commands inside a single packet
 - Ctrl+C on the server: clean shutdown, port immediately reusable
 - No descriptor left open
+- Slow client: a reader that stops draining its socket is disconnected once its output buffer exceeds `MAX_SENDQ`, without affecting the other clients
+- Sustained relay: 20,000 frames broadcast to a channel arrive byte-for-byte, with no truncated frame
 
 ---
 
@@ -222,4 +238,3 @@ The two `TOPIC` lines are the decisive ones: `TOPIC #dev` **queries** the topic,
 - [RFC 2812 — IRC Client Protocol](https://datatracker.ietf.org/doc/html/rfc2812)
 - [RFC GLOBAL - Response codes](https://alien.net.au/irc/irc2numerics.html)
 - [Modern IRC Documentation](https://modern.ircdocs.horse/)
-

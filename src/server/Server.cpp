@@ -18,7 +18,7 @@ Server::~Server(void)
 
 	while (it_client != it_client_end)
 	{
-		sendResponse(*it_client->second, "ERROR :Server shutting down");
+		queueResponse(*it_client->second, "ERROR :Server shutting down");
 		it_client++;
 	}
 
@@ -214,6 +214,24 @@ Client* Server::searchClientByNickname(const std::string &nickName)
 	return NULL;
 }
 
+Channel*	Server::addChannel(const std::string &channelName )
+{
+	std::string normalizeName = toLower(channelName);
+	Channel	*newChannel = new Channel(channelName);
+	this->_lobby.insert(std::pair<std::string, Channel*>(normalizeName, newChannel));
+	return newChannel;
+}
+
+Channel* Server::searchChannel(const std::string &channelName)
+{
+	std::string normalizeName = toLower(channelName);
+	std::map<std::string, Channel*>::iterator	it;
+	it = this->_lobby.find(normalizeName);
+	if(it == _lobby.end())
+		return NULL;
+	return it->second;
+}
+
 void	Server::deleteFromAllTheChannels(Client *client)
 {
 	std::map<std::string, Channel*>::iterator	it;
@@ -221,11 +239,11 @@ void	Server::deleteFromAllTheChannels(Client *client)
 	while (it != this->_lobby.end())
 	{
 		Channel	*channel = it->second;
-		if (channel->isInvited(client))
-			channel->removeInvited(client);
-		if (channel->isAMember(client))
+		if (channel->isInvited(*client))
+			channel->removeInvited(*client);
+		if (channel->isAMember(*client))
 		{
-			channel->removeMember(client);
+			channel->removeMember(*client);
 			if (channel->isEmpty())
 			{
 				delete(channel);
@@ -242,7 +260,7 @@ void	Server::deleteFromAllTheChannels(Client *client)
 	}
 }
 
-void	Server::broadcastToMemberInChannels(Client *client, const std::string &out)
+void	Server::broadcastToMemberInChannels(const Client *client, const std::string &out)
 {
 	std::map<std::string, Channel*>::iterator	it;
 	std::map<std::string, Channel*>::iterator	it_end;
@@ -251,7 +269,7 @@ void	Server::broadcastToMemberInChannels(Client *client, const std::string &out)
 	while (it != it_end)
 	{
 		Channel	*chan = it->second;
-		if (chan->isAMember(client))
+		if (chan->isAMember(*client))
 			chan->broadcast(out, client);
 		it++;
 	}
@@ -354,20 +372,66 @@ bool	Server::receiveMess(struct pollfd &pollFd)
 	return false;
 }
 
-Channel*	Server::addChannel(const std::string &channelName )
+bool Server::sendMess(struct pollfd &pollFd)
 {
-	std::string normalizeName = toLower(channelName);
-	Channel	*newChannel = new Channel(channelName);
-	this->_lobby.insert(std::pair<std::string, Channel*>(normalizeName, newChannel));
-	return newChannel;
+	std::map<int, Client*>::iterator	it;
+	it = this->_clientRepertory.find(pollFd.fd);
+	if(it == _clientRepertory.end())
+		return false;
+	Client *client = it->second;
+	int fd = client->getFdClient();
+	if (!client->hasOutput())
+	{
+		return	false;
+	}
+	ssize_t n = send(fd, client->getOutBuf().c_str(), client->getOutBuf().size(), 0);
+
+	if(n == -1)
+	{
+		this->deleteClient(client);
+		return true;
+	}
+	if(n > 0)
+	{
+		client->consumeOutBuf(n);
+	}
+	return false;
 }
 
-Channel* Server::searchChannel(const std::string &channelName)
+void Server::updatePollEvents()
 {
-	std::string normalizeName = toLower(channelName);
-	std::map<std::string, Channel*>::iterator	it;
-	it = this->_lobby.find(normalizeName);
-	if(it == _lobby.end())
-		return NULL;
-	return it->second;
+	size_t i = 0;
+	while(i < _pollFds.size())
+	{
+		if(_pollFds[i].fd == _servfd)
+		{
+			i++;
+			continue;
+		}
+		std::map<int, Client*>::iterator	it;
+		it = this->_clientRepertory.find(_pollFds[i].fd);
+		if(it == _clientRepertory.end())
+		{
+			i++;
+			continue;
+		}
+		Client *client = it->second;
+		if(client->isOutBufAboveSize())
+		{
+			deleteClient(client);
+			continue;
+		}
+		if(client->hasOutput())
+		{
+			_pollFds[i].events = POLLIN | POLLOUT;
+		}
+		else
+		{
+			_pollFds[i].events = POLLIN;
+		}
+		i++;
+	}
 }
+
+
+

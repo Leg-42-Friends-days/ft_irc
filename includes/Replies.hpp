@@ -1,6 +1,7 @@
 #pragma once
 
-const char * const SERVER_NAME 				= "ircserv";
+const char * const 	SERVER_NAME 			= "ircserv";
+const size_t		MAX_SENDQ				= 1024 * 1024; // 1 Mo
 
 // Reponses enregistrement
 const char * const	RPL_WELCOME 			= "001";

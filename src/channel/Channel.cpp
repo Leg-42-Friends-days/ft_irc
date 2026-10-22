@@ -53,10 +53,10 @@ void	Channel::addMember(Client *client)
 	this->_members.insert(std::pair<int, Client*>(client->getFdClient(), client));
 }
 
-void	Channel::removeMember(Client *client)
+void	Channel::removeMember(const Client &client)
 {
 	std::map<int, Client*>::iterator	it;
-	it = this->_members.find(client->getFdClient());
+	it = this->_members.find(client.getFdClient());
 	if (it == this->_members.end())
 		return;
 	else
@@ -66,9 +66,9 @@ void	Channel::removeMember(Client *client)
 	}
 }
 
-bool	Channel::isAMember(Client *client) const
+bool	Channel::isAMember(const Client &client) const
 {
-	std::map<int, Client*>::const_iterator	it = this->_members.find(client->getFdClient());
+	std::map<int, Client*>::const_iterator	it = this->_members.find(client.getFdClient());
 	std::map<int, Client*>::const_iterator	it_end = this->_members.end();
 
 	if (it == it_end)
@@ -87,7 +87,7 @@ std::string Channel::listMembers(void) const
 	{
 		if(!list.empty())
 			list += " ";
-		if(isOperator(it->second))
+		if(isOperator(*it->second))
 			list += "@";
 		list += it->second->getNickName();
 		it++;
@@ -104,10 +104,10 @@ void	Channel::addOperator(Client *client)
 	this->_operators.insert(std::pair<int, Client*>(client->getFdClient(), client));
 }
 
-void	Channel::removeOperators(Client *client)
+void	Channel::removeOperator(const Client &client)
 {
 	std::map<int, Client*>::iterator	it;
-	it = this->_operators.find(client->getFdClient());
+	it = this->_operators.find(client.getFdClient());
 	if (it != this->_operators.end())
 	{
 		this->_operators.erase(it);
@@ -117,9 +117,9 @@ void	Channel::removeOperators(Client *client)
 		return;
 }
 
-bool	Channel::isOperator(Client *client) const
+bool	Channel::isOperator(const Client &client) const
 {
-	std::map<int, Client*>::const_iterator	it = this->_operators.find(client->getFdClient());
+	std::map<int, Client*>::const_iterator	it = this->_operators.find(client.getFdClient());
 	std::map<int, Client*>::const_iterator	it_end = this->_operators.end();
 
 	if (it == it_end)
@@ -132,9 +132,9 @@ bool	Channel::isOperator(Client *client) const
 // ---------------------------------------- //
 // ---------------- INVITED --------------- //
 
-bool	Channel::isInvited(Client *client) const
+bool	Channel::isInvited(const Client &client) const
 {
-	std::map<int, Client*>::const_iterator	it = this->_invited.find(client->getFdClient());
+	std::map<int, Client*>::const_iterator	it = this->_invited.find(client.getFdClient());
 	std::map<int, Client*>::const_iterator	it_end = this->_invited.end();
 
 	if (it == it_end)
@@ -145,16 +145,16 @@ bool	Channel::isInvited(Client *client) const
 
 int	Channel::invite(Client *inviter, Client *guest)
 {
-	if (!this->isAMember(inviter))
+	if (!this->isAMember(*inviter))
 		return (1);
 	if (this->_inviteOnly == 1)
 	{
-		if (!this->isOperator(inviter))
+		if (!this->isOperator(*inviter))
 			return (2);
 	}
-	if (this->isAMember(guest))
+	if (this->isAMember(*guest))
 		return (3);
-	if (!this->isInvited(guest))
+	if (!this->isInvited(*guest))
 		this->addInvite(guest);
 	return (0);
 }
@@ -170,10 +170,10 @@ int		Channel::addInvite (Client *client )
 	return (0);
 }
 
-void	Channel::removeInvited(Client *client )
+void	Channel::removeInvited(const Client &client )
 {
 	std::map<int, Client*>::iterator	it;
-	it = this->_invited.find(client->getFdClient());
+	it = this->_invited.find(client.getFdClient());
 	if (it != this->_invited.end())
 		this->_invited.erase(it);
 }
@@ -272,7 +272,7 @@ void Channel::broadcast(const std::string &out, const Client *except) const
 	while (it != it_end)
 	{
 		if(it->second != except)
-		sendResponse(*it->second, out);
+		queueResponse(*it->second, out);
 		it++;
 	}
 }

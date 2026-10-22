@@ -41,9 +41,11 @@ class Server
 		Channel*					addChannel(const std::string &channelName);
 		Channel* 					searchChannel(const std::string &channelName);
 		void						deleteFromAllTheChannels( Client *client);
-		void						broadcastToMemberInChannels(Client *client, const std::string &out);
+		void						broadcastToMemberInChannels(const Client *client, const std::string &out);
 
 		// others
 		void						callCommand(std::string &buffer, Client* client);
 		bool						receiveMess(struct pollfd &pollFd);
+		bool						sendMess(struct pollfd &pollFd);
+		void						updatePollEvents();
 };
