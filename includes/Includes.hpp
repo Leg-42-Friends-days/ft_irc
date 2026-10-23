@@ -6,9 +6,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#include <string.h>
-#include <string>
-#include <sys/select.h>
 #include <signal.h>
 #include <sstream>
 #include <map>

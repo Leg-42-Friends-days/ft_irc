@@ -7,7 +7,7 @@
 #include "Utils.hpp"
 
 // Constructeur
-Server::Server(char **av) : _port(av[1]) , _password(av[2])
+Server::Server(char **av) : _port(av[1]) , _password(av[2]), _servfd(-1)
 {}
 
 // Destructeur
@@ -18,7 +18,8 @@ Server::~Server(void)
 
 	while (it_client != it_client_end)
 	{
-		queueResponse(*it_client->second, "ERROR :Server shutting down");
+		const std::string bye = "ERROR :Server shutting down";
+		send(it_client->second->getFdClient(), bye.c_str(), bye.size(), 0);
 		it_client++;
 	}
 
@@ -49,17 +50,17 @@ Server::~Server(void)
 }
 
 // Fonctions GET
-const std::string    &Server::getPort(void)
+const std::string    &Server::getPort(void) const
 {
 	return (this->_port);
 }
 
-const int	&Server::getServFd(void)
+int Server::getServFd(void) const
 {
 	return (this->_servfd);
 }
 
-std::vector<struct pollfd> &Server::getpollFds(void)
+std::vector<struct pollfd> &Server::getPollFds(void)
 {
 	return (this->_pollFds);
 }
@@ -69,7 +70,7 @@ std::map<int, Client*> &Server::getClientRepo(void)
 	return (this->_clientRepertory);
 }
 
-std::string &Server::getPassword(void)
+const std::string &Server::getPassword(void) const
 {
 	return (this->_password);
 }
@@ -241,6 +242,8 @@ void	Server::deleteFromAllTheChannels(Client *client)
 		Channel	*channel = it->second;
 		if (channel->isInvited(*client))
 			channel->removeInvited(*client);
+		if (channel->isOperator(*client))
+			channel->removeOperator(*client);
 		if (channel->isAMember(*client))
 		{
 			channel->removeMember(*client);

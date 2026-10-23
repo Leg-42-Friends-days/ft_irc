@@ -2,7 +2,9 @@
 
 #include "Includes.hpp"
 
-void						entryParsing(int &ac, char **av);
+class Client;
+
+void						entryParsing(int ac, char **av);
 bool 						checkPort(const std::string &port);
 bool 						isCorrectFormat(const std::string &msg);
 std::vector<std::string> 	splitWithComma(std::string input);
