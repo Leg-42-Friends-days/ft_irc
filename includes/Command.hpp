@@ -15,8 +15,6 @@ struct CmdInfo
     bool            needsRegister;
 };
 
-typedef void    (*handler_t)(Server &serv, Client &client, const Message &message);
-
 void            dispatcher(Server &serv, Client &client, const Message &message);
 void            assembleResponse(Client &client, const char * code, const std::string &param, const std::string &text);
 void            sendWelcome(Client &client);

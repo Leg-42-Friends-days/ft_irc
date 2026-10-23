@@ -2,6 +2,7 @@
 
 const char * const 	SERVER_NAME 			= "ircserv";
 const size_t		MAX_SENDQ				= 1024 * 1024; // 1 Mo
+const size_t		MAX_RECVQ				= 1024;
 
 // Reponses enregistrement
 const char * const	RPL_WELCOME 			= "001";

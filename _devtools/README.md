@@ -207,6 +207,7 @@ A channel and each private conversation get their own window.
 `Ctrl+N` and `Ctrl+P` cycle to the next and previous window.
 
 **Commands.**
+```bash
 /join #chan join a channel
 /part #chan leave it
 /msg <nick> <text> private message — opens a separate window
@@ -215,16 +216,17 @@ A channel and each private conversation get their own window.
 /kick <nick> <reason> remove a member
 /quit close the connection and exit irssi
 /exit exit without waiting for the server
+```
 
 
-**File transfer (DCC).** The server only relays the `DCC SEND` handshake as
-an ordinary `PRIVMSG`; the file itself travels over a direct TCP connection
-between the two clients.
+**File transfer (DCC).** The server only relays the `DCC SEND` handshake as an ordinary `PRIVMSG`; the file itself travels over a direct TCP connection between the two clients.
+
+```bash
 /set dcc_own_ip 127.0.0.1
 /set dcc_autoget ON
 /dcc send <nick> <path>
 /dcc get <nick> <filename>
-
+```
 
 **Expected on connect.** irssi sends `CAP LS 302` before `PASS`. `CAP` is
 outside the implemented subset, so the server answers `421`. irssi ignores

@@ -20,13 +20,13 @@ bool checkPort(const std::string &port)
 
 	if(*end != '\0')
 		return false;
-	if (portValue > 65535)
+	if (portValue < 1024 || portValue > 65535)
 			return false;
 	return true;
 }
 
 // Fonction qui verifie nombre d'arguments et appel checkPort
-void 	entryParsing(int &ac, char **av)
+void 	entryParsing(int ac, char **av)
 {
 	if (ac != 3)
 		throw std::runtime_error("execute : ./ircserv <port> <password>");
@@ -80,7 +80,7 @@ std::string checkPrefix(std::string &buffer)
 	{
 		for (size_t i = 0; i < buffer.length(); i++)
 		{
-			if (std::isspace(buffer[i]))
+			if (std::isspace(static_cast<unsigned char>(buffer[i])))
 			{
 				std::string line = buffer.substr(i);
 				line = trim(line);

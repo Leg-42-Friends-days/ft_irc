@@ -29,7 +29,7 @@ void	pollLoop(Server &serv)
 	while (g_running == 1)
 	{
 		serv.updatePollEvents();
-		int	pollCount = poll(&serv.getpollFds()[0], serv.getpollFds().size(), -1);
+		int	pollCount = poll(&serv.getPollFds()[0], serv.getPollFds().size(), -1);
 		if (pollCount == -1)
 		{
 			if(errno == EINTR)
@@ -42,17 +42,17 @@ void	pollLoop(Server &serv)
 		}
 
 		size_t	i = 0;
-		while (i < serv.getpollFds().size())
+		while (i < serv.getPollFds().size())
 		{
-			if (serv.getpollFds()[i].revents & POLLOUT)
+			if (serv.getPollFds()[i].revents & POLLOUT)
 			{
-				if(serv.sendMess(serv.getpollFds()[i]))
+				if(serv.sendMess(serv.getPollFds()[i]))
 					continue;
 			}
 
-			if (serv.getpollFds()[i].revents & (POLLIN | POLLHUP | POLLERR | POLLNVAL))
+			if (serv.getPollFds()[i].revents & (POLLIN | POLLHUP | POLLERR | POLLNVAL))
 			{
-				if (serv.getpollFds()[i].fd == serv.getServFd())
+				if (serv.getPollFds()[i].fd == serv.getServFd())
 				{
 					try
 					{
@@ -70,7 +70,7 @@ void	pollLoop(Server &serv)
 					try
 					{
 
-						if (serv.receiveMess(serv.getpollFds()[i]))
+						if (serv.receiveMess(serv.getPollFds()[i]))
 						{
 							i++;
 							continue;

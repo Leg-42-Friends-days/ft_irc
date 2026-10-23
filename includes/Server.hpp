@@ -22,11 +22,11 @@ class Server
 		~Server();
 
 		// getters
-		const std::string			&getPort();
-		const int					&getServFd();
-		std::vector<struct pollfd> 	&getpollFds();
+		const std::string			&getPort() const;
+		int							getServFd() const;
+		std::vector<struct pollfd> 	&getPollFds();
 		std::map<int, Client*> 		&getClientRepo();
-		std::string 				&getPassword();
+		const std::string 			&getPassword() const;
 
 		// init
 		void						initServ();
@@ -40,7 +40,7 @@ class Server
 		// channel
 		Channel*					addChannel(const std::string &channelName);
 		Channel* 					searchChannel(const std::string &channelName);
-		void						deleteFromAllTheChannels( Client *client);
+		void						deleteFromAllTheChannels(Client *client);
 		void						broadcastToMemberInChannels(const Client *client, const std::string &out);
 
 		// others

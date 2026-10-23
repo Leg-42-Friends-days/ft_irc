@@ -6,7 +6,7 @@
 // --------------------------------------------- //
 // ---------------- CONSTRUCTEUR --------------- //
 
-Channel::Channel(std::string channelName) : _topic(""), _topicChangeOperatorsOnly(0), _inviteOnly(0), _password(""), _nbMaxOfClients(0)
+Channel::Channel(const std::string &channelName) : _topic(""), _topicChangeOperatorsOnly(0), _inviteOnly(0), _password(""), _nbMaxOfClients(0)
 {
 	this->_channelName = channelName;
 }
@@ -22,7 +22,7 @@ bool	Channel::isEmpty(void) const
 	return (0);
 }
 
-bool	Channel::checkpassword(const std::string &password) const
+bool	Channel::checkPassword(const std::string &password) const
 {
 	if (password == this->_password)
 		return (1);
@@ -200,7 +200,7 @@ bool Channel::isTopicOpOnly(void) const
 // -------------------------------------- //
 // ---------------- MODES --------------- //
 
-void	Channel::setTopicChangeOperatorsOnly(bool yesno)
+void	Channel::setTopicOpOnly(bool yesno)
 {
 	if (yesno == 1)
 		this->_topicChangeOperatorsOnly = 1;
@@ -244,7 +244,7 @@ void	Channel::setMaxOfClients(const unsigned int &nb, bool yesno)
 	this->_nbMaxOfClients = nb;
 }
 
-const std::string	Channel::modesPrinter(void)
+std::string	Channel::modesPrinter(void) const
 {
 	std::string	rslt = "+";
 	if (this->isInviteOnly())
@@ -255,10 +255,7 @@ const std::string	Channel::modesPrinter(void)
 		rslt += "k";
 	if (this->_nbMaxOfClients != 0)
 		rslt += "l";
-	if (rslt.size() == 1)
-		return ("");
-	else
-		return (rslt);
+	return (rslt);
 }
 
 // ------------------------------------------ //

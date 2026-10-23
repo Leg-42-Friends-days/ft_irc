@@ -105,7 +105,7 @@ bool Client::extractLineInBuf(std::string &line)
 
 bool Client::isBufferAboveSize(void) const
 {
-    if(this->_inBuf.size() > 1024)
+    if(this->_inBuf.size() > MAX_RECVQ)
         return true;
     return false;
 }

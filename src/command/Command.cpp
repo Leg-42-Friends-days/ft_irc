@@ -296,7 +296,7 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
             std::string key;
             if(message.params.size() > 1)
                 key = message.params[1];
-            if(!chan->checkpassword(key))
+            if(!chan->checkPassword(key))
             {
                 assembleResponse(client, ERR_BADCHANNELKEY, chan->getChannelName(), "Cannot join the channel (wrong keys)");
                return;
@@ -419,6 +419,7 @@ void cmdKick(Server &serv, Client &client, const Message &message)
 			else
 				out = ":" + client.prefix() + " KICK " + chan->getChannelName() + " " + user->getNickName();
    			chan->broadcast(out, NULL);
+			chan->removeOperator(*user);
 			chan->removeMember(*user);
 			user_i++;
 		}
@@ -458,7 +459,6 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 	size_t i_params = 2;
 	std::string::iterator it = mode.begin();
 	char sign = '\0';
-	std::string modes = "itkol";
 	while (it != mode.end())
 	{
 		if (*it == '-' || *it == '+')
@@ -490,13 +490,13 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 		case 't':
 			if (sign == '+')
 			{
-				chan->setTopicChangeOperatorsOnly(1);
+				chan->setTopicOpOnly(1);
 				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +t";
 				chan->broadcast(out, NULL);
 			}
 			if (sign == '-')
 			{
-				chan->setTopicChangeOperatorsOnly(0);
+				chan->setTopicOpOnly(0);
 				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -t";
 				chan->broadcast(out, NULL);
 			}
