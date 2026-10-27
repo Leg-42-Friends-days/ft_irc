@@ -3,6 +3,7 @@
 #include "Includes.hpp"
 
 class Client;
+
 class Channel
 {
 	private:
@@ -58,7 +59,7 @@ class Channel
 		bool				isInviteOnly() const;
 		void				setPassword(const std::string &password, bool yesno);
 		bool				isPasswordSet() const;
-		void				setMaxOfClients(const unsigned int &nb, bool yesno);
+		void				setMaxOfClients(const unsigned int &nb);
 		std::string 		modesPrinter() const;
 
 		// diffusion

@@ -276,8 +276,11 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     Channel * chan = serv.searchChannel(message.params[0]);
     if(chan == NULL)
     {
-        chan = serv.addChannel(message.params[0]);
-        chan->addOperator(&client);
+		chan = serv.addChannel(message.params[0]);
+		if (toLower(message.params[0]) == BOT_CHANNEL)
+			chan->setMaxOfClients(1);
+		else
+        	chan->addOperator(&client);
     }
     else
     {
@@ -298,8 +301,8 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
                 key = message.params[1];
             if(!chan->checkPassword(key))
             {
-                assembleResponse(client, ERR_BADCHANNELKEY, chan->getChannelName(), "Cannot join the channel (wrong keys)");
-               return;
+            	assembleResponse(client, ERR_BADCHANNELKEY, chan->getChannelName(), "Cannot join the channel (wrong keys)");
+            	return;
             }
         }
     }
@@ -317,6 +320,8 @@ void cmdJoin(Server &serv, Client &client, const Message &message)
     std::string param = "= " + chan->getChannelName();
     assembleResponse(client, RPL_NAMREPLY, param, chan->listMembers());
     assembleResponse(client, RPL_ENDOFNAMES, chan->getChannelName(), "End of /NAMES list");
+	if (toLower(message.params[0]) == BOT_CHANNEL)
+		queueResponse(client, ":" + BOT_NAME + "!bot@localhost PRIVMSG " + BOT_CHANNEL + " :Hello. How do you feel today?");
 }
 
 
@@ -348,6 +353,12 @@ void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 			return ;
 		}
 		std::string out = ":" + client.prefix() + " PRIVMSG " + chan->getChannelName() + " :" + message.params[1];
+		if (chan->getChannelName() == BOT_CHANNEL)
+		{
+			std::string	answer = ElizaAnswer(message.params[1]);
+			queueResponse(client, answer); 
+			return ;
+		}
 		chan->broadcast(out, &client);
 		return;
 	}
@@ -581,14 +592,14 @@ void cmdMode(Server &serv, Client &client, const Message &message)
 					assembleResponse(client, ERR_UNKNOWNMODE, "l", "Invalid channel limit");
 					break;
 				}
-				chan->setMaxOfClients(static_cast<unsigned int>(nb), 1);
+				chan->setMaxOfClients(static_cast<unsigned int>(nb));
 				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " +l " + message.params[i_params];
 				chan->broadcast(out, NULL);
 				i_params++;
 			}
 			if (sign == '-')
 			{
-				chan->setMaxOfClients(0, 0);
+				chan->setMaxOfClients(0);
 				std::string	out = ":" + client.prefix() + " MODE " + chan->getChannelName() + " -l";
 				chan->broadcast(out, NULL);
 			}

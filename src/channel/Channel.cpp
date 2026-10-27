@@ -238,9 +238,8 @@ bool	Channel::isPasswordSet(void) const
 		return (1);
 }
 
-void	Channel::setMaxOfClients(const unsigned int &nb, bool yesno)
+void	Channel::setMaxOfClients(const unsigned int &nb)
 {
-	(void)yesno;
 	this->_nbMaxOfClients = nb;
 }
 

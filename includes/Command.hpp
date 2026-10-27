@@ -4,6 +4,7 @@
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Message.hpp"
+#include "Bot.hpp"
 
 typedef void (*handler_t)(Server &serv, Client &client, const Message &message);
 
