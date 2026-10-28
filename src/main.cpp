@@ -89,6 +89,7 @@ void	pollLoop(Server &serv)
 
 int main(int ac, char **av)
 {
+	srand(time(NULL));
 	try
 	{
 		entryParsing(ac, av);

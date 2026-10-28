@@ -9,3 +9,4 @@ const std::string	BOT_CHANNEL		= "#eliza";
 const std::string	BOT_NAME 		= "eliza";
 
 std::string	ElizaAnswer(std::string const &message);
+bool	isNegativeFeeling(const std::string &sentence);
