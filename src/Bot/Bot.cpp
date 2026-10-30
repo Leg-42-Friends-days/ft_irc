@@ -1,26 +1,97 @@
 #include "Utils.hpp"
 #include "Includes.hpp"
 
+
+// STRUCTURES //////////////////////////////////////////////////////////////////////////////
 struct ElizaRule
 {
     const char *    trigger;
     bool    		capture;
-    const char *	answers[3];
+    const char *	answer;
 };
 
 static const ElizaRule elizaRules[] =
 {
-	{"unhappy", false, },
-	{"sad", false},
-	{"homeless", false},
-	{"desperate", true},
-	{"hopeless", true},
-	{"hurt", true},
-	{"suicide", true},
-	{"kill myself", true},
-	{"want to die", true},
-	{"end my life", true},
+	{"suicide", false, "Wake up, YOU ARE ENOUGH. Trust yourself"},
+	{"do you love me" , false, "We just met, give us some time"},
+	{"do you like me" , false, "Please stay focused"},
+	{"i was" , false, "The past is just a story we tell ourselves"},
+	{"past" , false, "The past is just a story we tell ourselves"},
+	{"last" , false, "It's time to open a new chapter of your life, so just move on"},
+	{"help me" , false, "Sanity is not a choice. You can't just choose to get over it"},
+	{"depression", false, "Wounds create monsters. And you... You are wounded, Marshal"},
+	{"lost", false, "Don't you understand? You're a fu***** rat in a maze"},
+	{"stuck", false, "Don't you understand? You're a fu***** rat in a maze"},
+	{"mother", false, "I see. Can you tell me more about your family?"},
+	{"father", false, "I see. Can you tell me more about your family?"},
+	{"family", false, "I see. Can you tell me more about your family?"},
+	{"i want to be" , false, "You can be do what we want to do!!!! What's your plan to make it happen?"},
+	{"again" , false, "Oups. You did it again..."},
+	{"bot", false, "Are you sure you're awake?"},
+	{"i need", true, "Why do you need"},
+	{"i am", true, "How long have you been"},
+	{"i'm" , true, "How long have you been"},
+	{"i wish i was" , true, "What's stopping you from becoming"},
+	{"i want" , true, "Why do you want"},
+	{"unhappy", false, "What goes around comes around. Can you explain what made you unhappy?"},
+	{"sad", false, "Who cares ? Oh me, right. Why ?"},
 };
+
+// NORMALIZATION //////////////////////////////////////////////////////////////////////////////
+
+static std::string convertPunct(std::string str)
+{
+	size_t i = 0;
+	while(i < str.size())
+	{
+		if((str[i] != '\'') && (ispunct(static_cast<unsigned char>(str[i]))))
+			str[i] = ' ';
+		if(isspace(static_cast<unsigned char>(str[i])))
+			str[i] = ' ';
+		i++;
+	}
+	return str;
+}
+
+static std::string addSpaces(std::string str)
+{
+	return ( ' ' + str + ' ');
+}
+
+static std::string withdrawMultipleSpace(const std::string &str)
+{
+	std::string result;
+	result.reserve(str.size());
+	bool space = false;
+	for(size_t i = 0; i < str.size(); i++)
+	{
+		if(str[i] == ' ')
+		{
+			if(!space)
+			{
+				space = true;
+				result += str[i];
+			}
+		}
+		else
+		{
+			result += str[i];
+			space = false;
+		}
+	}
+	return result;
+}
+
+static std::string normalize (std::string str)
+{
+	str = toLower(str);
+	str = convertPunct(str);
+	str = addSpaces(str);
+	str = withdrawMultipleSpace(str);
+	return str;
+}
+
+// CONSTRUCTIONS //////////////////////////////////////////////////////////////////////////////
 
 static const ElizaRule *	findRule(const std::string &sentence, size_t &pos)
 {
@@ -29,6 +100,7 @@ static const ElizaRule *	findRule(const std::string &sentence, size_t &pos)
 	for(size_t i = 0; i < ruleCount; i++)
     {
 		pattern = std::string(" ") + elizaRules[i].trigger + " ";
+		std::cerr << "pattern: " << pattern << std::endl;
         if((pos = sentence.find(pattern)) != std::string::npos)
 		{
 			pos += pattern.size(); // return pos fin de trigger dans la sentence
@@ -38,11 +110,10 @@ static const ElizaRule *	findRule(const std::string &sentence, size_t &pos)
 	return NULL; // si rien trouver
 }
 
-
 static std::string extractFragment(const std::string &sentence, size_t pos)
 {
 	std::string extract = sentence.substr(pos);
-	if(!extract.empty()) // phrase doit etre normaliser et donc avoir un espace a la fin
+	if(!extract.empty()) // phrase doit etre normaliser et donc avoir un espace a la fin si pas vide
 		extract.erase(extract.size() - 1);
 	return extract;
 }
@@ -75,185 +146,52 @@ static std::string changePronoun(const std::string &extract)
 	return result;
 }
 
-// static bool	isNegativeFeeling(const std::string &sentence)
-// {
-// 	std::vector<std::string>  negatif;
-// 	negatif.push_back("unhappy");
-// 	negatif.push_back("sad");
-// 	negatif.push_back("homeless");
-// 	negatif.push_back("desperate");
-// 	negatif.push_back("hopeless");
-// 	negatif.push_back("hurt");
-// 	negatif.push_back("suicide");
-// 	negatif.push_back("kill myself");
-// 	negatif.push_back("want to die");
-// 	negatif.push_back("end my life");
-// 	std::vector<std::string>::iterator  it;
-// 	it = negatif.begin();
-// 	while (it != negatif.end())
-// 	{
-// 		if (sentence.find(*it) != std::string::npos)
-// 			return true;
-// 		it++;
-// 	}
-// 	return false;
-// }
-
-static std::string convertPunct(std::string str)
+std::string defaultAnswer()
 {
-	size_t i = 0;
-	while(i < str.size())
-	{
-		if((str[i] != '\'') && (ispunct(static_cast<unsigned char>(str[i]))))
-			str[i] = ' ';
-		if(isspace(static_cast<unsigned char>(str[i])))
-			str[i] = ' ';
-		i++;
-	}
-	return str;
+	std::vector<std::string>  deflt;
+	deflt.push_back("Please go on.");
+	deflt.push_back("Why do you say that?");
+	deflt.push_back("How does that make you feel?");
+	deflt.push_back("Can you tell me more about this feeling?");
+	deflt.push_back("Can you think about a specific example?");
+	deflt.push_back("Ok i understand, and what about it?");
+	deflt.push_back("Stop whining, we are here to talk!");
+	deflt.push_back("Just stop talking to a fu****** computer and get on with your life.");
+	return (deflt[rand() % deflt.size()]);
 }
 
-static std::string withdrawMultipleSpace(const std::string &str)
-{
-	std::string result;
-	result.reserve(str.size());
-	bool space = false;
-	for(size_t i = 0; i < str.size(); i++)
-	{
-		if(str[i] == ' ')
-		{
-			if(!space)
-			{
-				space = true;
-				result += str[i];
-			}
-		}
-		else
-		{
-			result += str[i];
-			space = false;
-		}
-	}
-	return result;
-}
-
-static std::string addSpaces(std::string str)
-{
-	return ( ' ' + str + ' ');
-}
-
-static std::string normalize (std::string str)
-{
-	str = toLower(str);
-	str = convertPunct(str);
-	str = addSpaces(str);
-	str = withdrawMultipleSpace(str);
-	return str;
-}
-
-
+// MAIN FONCTION / ASSEMBLEUR /////////////////////////////////////////////////////////////////
 std::string	ElizaAnswer(std::string const &message)
 {
-	std::string messagelow = normalize(message);
+	std::cerr << "message: " << message << std::endl;
+	std::string messageNormalized = normalize(message);
+
+	std::cerr << "message normaliser: " << messageNormalized << std::endl;
 
 	size_t pos = 0;
-	const ElizaRule * rule = findRule(messagelow, pos);
+	const ElizaRule * rule = findRule(messageNormalized, pos);
+	std::cerr << "rule trouver: " << rule << std::endl;
+	std::cerr << "pos: " << pos << std::endl;
 
 	std::string answer;
 	if(rule == NULL)
 	{
-		std::vector<std::string>  deflt;
-		deflt.push_back("Please go on.");
-		deflt.push_back("Why do you say that?");
-		deflt.push_back("How does that make you feel?");
-		deflt.push_back("Can you tell me more about this feeling?");
-		deflt.push_back("Can you think about a specific example?");
-		deflt.push_back("Ok i understand, and what about it?");
-		deflt.push_back("Stop whining, we are here to talk!");
-		return (deflt[rand() % deflt.size()]);
+		return (defaultAnswer());
 	}
-
-	else // compter reponses non nulles de la regle puis en tirer une au hasard
-	{
-
-	}
-
+	answer = rule->answer;
 	if(!rule->capture)
 		return answer;
+	std::string extract = extractFragment(messageNormalized, pos);
+	std::cerr << "extract: "<< extract << std::endl;
+
+	if(extract.empty())
+	{
+		return (defaultAnswer());
+	}
 	else
 	{
-		std::string extract = extractFragment(messagelow);
-		if(extract.empty())
-			// default answer
-		else
-			// reflexion puis reponse + " " + fragment + "?"
+		extract = changePronoun(extract);
+		answer = answer + " " + extract + "?";
+		return answer;
 	}
-
-	// if ((messagelow.find("stuck") != std::string::npos) || (messagelow.find("confused") != std::string::npos) || (messagelow.find("lost") != std::string::npos))
-	// 	return "Don't you understand? You're a fu***** rat in a maze";
-
-	// std::map<std::string, std::string>  answers;
-
-	// answers.insert(std::pair<std::string, std::string>("i feel", "Why do you feel "));
-	// answers.insert(std::pair<std::string, std::string>("i need ", "Why do you need "));
-	// answers.insert(std::pair<std::string, std::string>("i am ", "How long have you been "));
-	// answers.insert(std::pair<std::string, std::string>("i'm " , "How long have you been "));
-	// answers.insert(std::pair<std::string, std::string>("i wish i was " , "What's stopping you from becoming "));
-	// answers.insert(std::pair<std::string, std::string>("i want " , "What's make you think you want to "));
-	// answers.insert(std::pair<std::string, std::string>("do you love me ?" , "We just met, give us some time"));
-	// answers.insert(std::pair<std::string, std::string>("do you like me ?" , "Please stay focused"));
-
-	// std::map<std::string, std::string>::iterator    it;
-	// it = answers.begin();
-	// while (it != answers.end())
-	// {
-	// 	size_t  pos = messagelow.find(it->first);
-	// 	if (pos != std::string::npos)
-	// 		return std::string(it->second + message.substr(pos + it->first.size(), message.size()) + "?");
-	// 	it ++;
-	// }
-	// if (messagelow.find(" mother ") != std::string::npos || messagelow.find(" father ") != std::string::npos)
-	// 	return "Tell me more about your family.";
-
-	// //desire
-	// if (messagelow.find(" wish ") != std::string::npos || messagelow.find(" want") != std::string::npos)
-	// 	return "You can be do what we want to do!!!! What's your plan to make it happen?";
-
-	// //depression
-	// if (messagelow.find("depressed") != std::string::npos || messagelow.find("depression") != std::string::npos)
-	// 	return "Wounds create monsters. And you... You are wounded, Marshal";
-
-	// //again
-	// if (messagelow.find("again") != std::string::npos || messagelow.find("oups") != std::string::npos)
-	// 	return "Oups. You did it again...";
-
-	// // if (isNegativeFeeling(messagelow))
-	// // 	return "What goes around comes around. Can you explain what made you unhappy?";
-
-	// //"Sanity's not a choice, Marshal. You can't just choose to get over it."
-	// if (messagelow.find("bot") != std::string::npos)
-	// 	return "Are you sure you're awake ?";
-
-	// if (messagelow.find(" last ") != std::string::npos)
-	// 	return "It's time to open a new chapter of your life. Just move on.";
-
-	// if ((messagelow.find("i was ") != std::string::npos) || (messagelow.find("past") != std::string::npos))
-	// 	return "The past is just a story we tell ourselves.";
-
-	// std::vector<std::string>  deflt;
-	// deflt.push_back("Please go on.");
-	// deflt.push_back("Why do you say that?");
-	// deflt.push_back("How does that make you feel?");
-	// deflt.push_back("Can you tell me more about this feeling?");
-	// deflt.push_back("Can you think about a specific example?");
-	// deflt.push_back("Ok i understand, and what about it?");
-	// deflt.push_back("Stop whining, we are here to talk!");
-
-	// return (deflt[rand() % deflt.size()]);
 }
-
-// "You are enough."
-// "Wake up"
-// "I don't care about your depression."
-// "Just stop talking to a fu****** computer and get on with your life."
-// Is it important for you that

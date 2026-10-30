@@ -355,8 +355,8 @@ void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 		std::string out = ":" + client.prefix() + " PRIVMSG " + chan->getChannelName() + " :" + message.params[1];
 		if (chan->getChannelName() == BOT_CHANNEL)
 		{
-			std::string	answer = ElizaAnswer(message.params[1]);
-			queueResponse(client, answer); 
+			std::string	answer = ":eliza!eliza@" + std::string(SERVER_NAME) + " PRIVMSG " + "#eliza" + " :" + ElizaAnswer(message.params[1]);
+			queueResponse(client, answer);
 			return ;
 		}
 		chan->broadcast(out, &client);
