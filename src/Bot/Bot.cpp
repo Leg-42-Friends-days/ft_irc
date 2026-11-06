@@ -27,7 +27,7 @@ static const ElizaRule elizaRules[] =
 	{"family", false, "I see. Can you tell me more about your family?"},
 	{"i want to be" , false, "You can be do what we want to do!!!! What's your plan to make it happen?"},
 	{"again" , false, "Oups. You did it again..."},
-	{"bot", false, "Are you sure you're awake?"},
+	{"bot", false, "Is this a simulation ? Stop asking stupid question"},
 	{"i need", true, "Why do you need"},
 	{"i am", true, "How long have you been"},
 	{"i'm" , true, "How long have you been"},
@@ -100,7 +100,6 @@ static const ElizaRule *	findRule(const std::string &sentence, size_t &pos)
 	for(size_t i = 0; i < ruleCount; i++)
     {
 		pattern = std::string(" ") + elizaRules[i].trigger + " ";
-		std::cerr << "pattern: " << pattern << std::endl;
         if((pos = sentence.find(pattern)) != std::string::npos)
 		{
 			pos += pattern.size(); // return pos fin de trigger dans la sentence
@@ -163,15 +162,10 @@ std::string defaultAnswer()
 // MAIN FONCTION / ASSEMBLEUR /////////////////////////////////////////////////////////////////
 std::string	ElizaAnswer(std::string const &message)
 {
-	std::cerr << "message: " << message << std::endl;
 	std::string messageNormalized = normalize(message);
-
-	std::cerr << "message normaliser: " << messageNormalized << std::endl;
 
 	size_t pos = 0;
 	const ElizaRule * rule = findRule(messageNormalized, pos);
-	std::cerr << "rule trouver: " << rule << std::endl;
-	std::cerr << "pos: " << pos << std::endl;
 
 	std::string answer;
 	if(rule == NULL)
@@ -182,7 +176,6 @@ std::string	ElizaAnswer(std::string const &message)
 	if(!rule->capture)
 		return answer;
 	std::string extract = extractFragment(messageNormalized, pos);
-	std::cerr << "extract: "<< extract << std::endl;
 
 	if(extract.empty())
 	{

@@ -109,6 +109,12 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use");
 		return;
 	}
+		if (toLower(message.params[0]) == "eliza")
+	{
+		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use by the bot");
+		return;
+	}
+
 	std::string oldPrefix = client.prefix();
 	client.setNickName(message.params[0]);
 	if(!isAlreadyRegistered && client.isRegistered())
