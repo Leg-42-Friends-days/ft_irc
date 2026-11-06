@@ -109,6 +109,12 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use");
 		return;
 	}
+		if (toLower(message.params[0]) == "eliza")
+	{
+		assembleResponse(client, ERR_NICKNAMEINUSE, message.params[0], "Nickname is already in use by the bot");
+		return;
+	}
+
 	std::string oldPrefix = client.prefix();
 	client.setNickName(message.params[0]);
 	if(!isAlreadyRegistered && client.isRegistered())
@@ -355,8 +361,8 @@ void cmdPrivMsg(Server &serv, Client &client, const Message &message)
 		std::string out = ":" + client.prefix() + " PRIVMSG " + chan->getChannelName() + " :" + message.params[1];
 		if (chan->getChannelName() == BOT_CHANNEL)
 		{
-			std::string	answer = ElizaAnswer(message.params[1]);
-			queueResponse(client, answer); 
+			std::string	answer = ":eliza!eliza@" + std::string(SERVER_NAME) + " PRIVMSG " + "#eliza" + " :" + ElizaAnswer(message.params[1]);
+			queueResponse(client, answer);
 			return ;
 		}
 		chan->broadcast(out, &client);

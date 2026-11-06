@@ -212,6 +212,7 @@ Client* Server::searchClientByNickname(const std::string &nickName)
 			return it->second;
 		it++;
 	}
+
 	return NULL;
 }
 

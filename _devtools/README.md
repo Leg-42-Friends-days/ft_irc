@@ -275,3 +275,4 @@ The two `TOPIC` lines are the decisive ones: `TOPIC #dev` **queries** the topic,
 - [RFC 2812 — IRC Client Protocol](https://datatracker.ietf.org/doc/html/rfc2812)
 - [RFC GLOBAL - Response codes](https://alien.net.au/irc/irc2numerics.html)
 - [Modern IRC Documentation](https://modern.ircdocs.horse/)
+- [Homemade Notions IRC](https://decisive-rise-4fb.notion.site/IRC-3d5e78575df580b589cfd05e7b02f9ff)
