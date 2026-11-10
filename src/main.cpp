@@ -104,7 +104,7 @@ int main(int ac, char **av)
 	try
 	{
 		serv.initServ();
-		std::cerr << "Server is listening to you baby" << std::endl;
+		std::cerr << "Server is listening to you" << std::endl;
 		serv.initPollFds();
 		pollLoop(serv);
 	}
