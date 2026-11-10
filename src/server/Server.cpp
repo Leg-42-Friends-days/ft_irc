@@ -356,9 +356,15 @@ bool	Server::receiveMess(struct pollfd &pollFd)
 	}
 	else
 	{
-		std::string s (buffer, message);
+		std::string s;		
+		int	i = 0;
+		while (i < message)
+		{
+			if (buffer[i] != '\x04')
+				s += buffer[i];
+			i++;
+		}
 		client->addInBuf(s);
-
 	}
 
 	std::string line;
