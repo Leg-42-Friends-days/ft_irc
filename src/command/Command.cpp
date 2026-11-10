@@ -98,6 +98,12 @@ void cmdNick(Server &serv, Client &client, const Message &message)
 		return;
 	}
 
+	if(message.params[0].size() > 9)
+	{
+		assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Nickname maximum length of nine");
+		return;
+	}
+
 	if (!isCorrectFormat(message.params[0]))
 	{
 		assembleResponse(client, ERR_ERRONEUSNICKNAME, message.params[0], "Special caracter is forbidden");

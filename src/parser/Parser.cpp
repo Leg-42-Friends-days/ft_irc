@@ -110,9 +110,6 @@ std::string nickOrStar(const Client &client)
 // Fonction qui check le format de Nickname
 bool isCorrectFormat(const std::string &msg)
 {
-	if(msg.size() > 30)
-		return false;
-
 	const std::string specialCarac = "[]\\`_^{}|";
 
 	if(!std::isalpha(static_cast<unsigned char>(msg[0])) && (specialCarac.find(msg[0]) == std::string::npos))
